@@ -1,5 +1,5 @@
 === WP Video Posts ===
-Contributors: Alex Rayan & Kaysten Mazerino
+Contributors: AlexRayan, cmstactics
 Donate link: http://www.cmstactics.com/
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
