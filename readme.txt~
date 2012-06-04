@@ -1,6 +1,6 @@
 === WP Video Posts ===
-Contributors: Alex Rayan & Kaysten Mazerino
-Donate link: http://www.cmstactics.com/
+Contributors: AlexRayan, cmstactics
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
 Tested up to: 3.2.1
@@ -48,6 +48,10 @@ In order for WP Video Posts to work properly following requirements need to be p
 Q: I get a "Page not found" error when I view my new video post. Why is this
 happening? 
 A: With any new custom post type being registered with WordPress, the permalinks need to be updated.  The solution is go to the 'Settings'->'Permalinks' and save your current links structure again. 
+
+Q: I'm running WordPress multisite and I get the message that says something about the file type not being supported.  How do I fix that?
+A: If you are using WordPress multisite, then you need to manually list the type of video formats to allow for upload.  This is done by logging in to the wp-admin, and going to 'My Site' => 'Network Admin', then click on 'Settings' => 'Network Settings'.
+Scroll down to the Upload Settings section of the network settings page and add the format in the Upload file types list.
 
 = What pre-requirements do I need to install this plugin? =
 

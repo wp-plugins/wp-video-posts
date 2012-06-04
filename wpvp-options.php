@@ -45,6 +45,17 @@ if($_POST['wpvp_hidden'] == 'Y') {
 ?>
 <div class="wrap">
 	<?php	echo "<h2>" . __( 'WP Video Posts Options' ) . "</h2>";?>
+
+	<!-- PayPal Donate -->
+	<?php echo "<h3>Please donate if you enjoy this plugin (WPVP):</h3>"; ?>
+		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+			<input type="hidden" name="cmd" value="_s-xclick">
+			<input type="hidden" name="hosted_button_id" value="J535UTFPCXFQC">
+			<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+		</form>
+	<hr>
+
 	<?php 	if(!$ffmpeg_installed){
 		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly.<br />Please verify with your administrator or hosting provider to have this installed and configured.</h3><br />';
 	} ?>	

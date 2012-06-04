@@ -1,9 +1,9 @@
 === WP Video Posts ===
 Contributors: AlexRayan, cmstactics
-Donate link: http://www.cmstactics.com/
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
-Tested up to: 3.2.1
+Tested up to: 3.3.1
 Stable tag: 1.0
 
 Upload videos into your custom video posts. FFMPEG must be installed to encode
