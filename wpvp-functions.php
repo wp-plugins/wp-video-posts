@@ -4,8 +4,14 @@
 function dump_encoder( $data ) {
       // This is my Dumper function...
       	//return error_log( date ( 'r -> ', time() ) . print_r($data,true) . "\n" , 3, "debug_encoder_new.log");
-	//error_log( date ( 'r -> ', time() ) . print_r($data, true) . "\n" , 1, "wpvp@cmstactics.com");
+	//return error_log( date ( 'r -> ', time() ) . print_r($data, true) . "\n" , 1, "wpvp@cmstactics.com");
 	return $data;
+}
+
+function ffmpegCommandExistsCheck($command) {
+    $command = escapeshellarg($command);
+    $exists = exec($command." -h",$out);
+    return sizeof($out);
 }
 
 function wpvp_get_options(){
@@ -96,7 +102,6 @@ function encode($ID) {
 
 			// This is the actual loop
 			while($fileFound) {
-
 				if ($fileDetails['dirname'] == '.')
 					$fname = $fileDetails['filename'].$i;						
 				else
@@ -106,11 +111,18 @@ function encode($ID) {
 				$guid = $GuidPath . '/' . $fname.$extension;
 				$newFileTB = $dirnameGet .'/'.$fname.$thumbfmt;
 				$guidTB = $GuidPath . '/' . $fname.$thumbfmt;
-		
-				if(file_exists($newFile))
-					$i = $i=='' ? 1 : $i+1;			
-				else
+				
+				if (ffmpegCommandExistsCheck("ffmpeg")>0){
+					$file_encoded = 1;
+					if(file_exists($newFile))
+						$i = $i=='' ? 1 : $i+1;			
+					else
+						$fileFound = false;
+				}	
+				else{
+					$file_encoded = 0;
 					$fileFound = false;
+				}
 			}
 
 			//dump_encoder('Converting from ' . $originalFileUrl);
@@ -122,11 +134,17 @@ function encode($ID) {
 			// Call our ffmpeg encoder function
 			convert ( $originalFileUrl, $newFile, $encodeFormat );
 	
-			if(file_exists($newFile)) {
-
+			if($file_encoded) {	
 				// We call the pathinfo function on the FULL path to the NEW file so we can access elements.
 				$NewfileDetails = pathinfo($newFile);
-				$NewTmbDetails  = pathinfo($newFileTB);
+                                $NewTmbDetails  = pathinfo($newFileTB);
+			}
+			else{
+				$guidTB = plugins_url('/images/', __FILE__).'default_image.png';
+				$newFile = $originalFileUrl;
+				$NewTmbDetails['basename']='default_image.png';
+				$NewfileDetails['basename']='default_image.png';	
+			}
 
 				// To display the player automatically...
 				$shortCode  = '[wpvp_flowplayer src='.$guid.' width='.$width.' height='.$height.' splash='.$guidTB.']';
@@ -146,20 +164,8 @@ function encode($ID) {
 				//$Videopost['post_category']	= $categories;
 				$Videopost['ID']		= $postID;
 				$updatedPost = wp_update_post($Videopost);	
-	
+				//dump_encoder('updatedpost id or error '.$updatedPost);
 								
-				// We could add the actual post if the plugin is made to execute on every image upload without adding video to an existing post
-				// We add the actual post but ONLY if its configured to do so... (we should have an option)
-				//$Videopost                    = array();
-                                //$Videopost['post_title']      = $NewfileDetails['basename'];
-                                //$Videopost['post_status']     = 'draft';
-                                //$Videopost['post_type']       = 'videos';
-                                //$Videopost['post_content']      = $shortCode;
-                                //$Videopost['post_category']   = $categories;
-                                //$Videopost['ID']                = $postID;
-                                //dump_encoder('Post id '.$postID);
-                                //$VideopostID                  = wp_insert_post( $Videopost );
-
 				// We add a video attachment post 
   				$my_NEWpost 			= array();
 				$my_NEWpost['post_title']   	= $NewTmbDetails['basename'];
@@ -169,38 +175,32 @@ function encode($ID) {
   				$my_NEWpost['guid']         	= $guidTB;
   				$my_NEWpost['post_mime_type']  	= $mime_tmb;
 				$newVideoPost               	= wp_insert_post( $my_NEWpost );
-
-				if ($VideopostID and $newVideoPost)
-					add_post_meta($VideopostID, '_thumbnail_id', $newVideoPost);
-
-				// We update the meta_data (postmeta table)
-				if ($fileDetails['dirname'] == '.') {
-				   update_post_meta($ID, '_wp_attached_file', $NewfileDetails['basename']);
-				   update_post_meta($newVideoPost, '_wp_attached_file', $NewTmbDetails['basename']);
-				}
-				else { 
-                               	   update_post_meta($ID, '_wp_attached_file', $fileDetails['dirname'] . '/' . $NewfileDetails['basename']);
-                               	   update_post_meta($newVideoPost, '_wp_attached_file', $NewTmbDetails['dirname'] . '/' . $NewTmbDetails['basename']);
-				}
-
-				// We update the actual post main data (posts table)
-  				$my_post = array();
-
-				if ($newVideoPost) { 
-  					$my_post['ID'] = $ID;
-  					$my_post['post_title'] = $NewfileDetails['basename'];
-  					$my_post['guid'] = $guid;
-  					$my_post['post_parent'] = $VideopostID;
-  					$my_post['post_mime_type'] = $mime_type;
-  					wp_update_post( $my_post );
-				}
-
 				
+				if($file_encoded){
+					if ($VideopostID and $newVideoPost)
+						add_post_meta($VideopostID, '_thumbnail_id', $newVideoPost);
+					// We update the meta_data (postmeta table)
+					if ($fileDetails['dirname'] == '.') {
+					   	update_post_meta($ID, '_wp_attached_file', $NewfileDetails['basename']);
+				   		update_post_meta($newVideoPost, '_wp_attached_file', $NewTmbDetails['basename']);
+					}
+					else { 
+                               	   		update_post_meta($ID, '_wp_attached_file', $fileDetails['dirname'] . '/' . $NewfileDetails['basename']);
+                               	   		update_post_meta($newVideoPost, '_wp_attached_file', $NewTmbDetails['dirname'] . '/' . $NewTmbDetails['basename']);
+					}
+					// We update the actual post main data (posts table)
+        	                        $my_post = array();
+                                	if ($newVideoPost) {
+                                        	$my_post['ID'] = $ID;
+                                        	$my_post['post_title'] = $NewfileDetails['basename'];
+                                	        $my_post['guid'] = $guid;
+                        	                $my_post['post_parent'] = $VideopostID;
+                	                        $my_post['post_mime_type'] = $mime_type;
+	                                        wp_update_post( $my_post );
+        	                        }
 
-				if (file_exists($originalFileUrl)){
 					unlink($originalFileUrl);
-				}			
-			}			
+				}
 		}
 }
 

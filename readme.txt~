@@ -3,12 +3,11 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
-Tested up to: 3.2.1
-Stable tag: 1.0
+Tested up to: 3.3.1
+Stable tag: 1.1
 
-Upload videos into your custom video posts. FFMPEG must be installed to encode
-and create splash image. Supports FLV, F4V, MP4, AVI, MOV, 3GP and WMV
-formats.
+Upload videos to create custom video posts. With FFMPEG installed, it encodes
+and creates splash image. Supports FLV, F4V, MP4, AVI, MOV, 3GP and WMV formats.
 
 == Description ==
 
@@ -29,10 +28,12 @@ Youtube:
 Vimeo:
 [wpvp_embed type=vimeo video_code=23117398 width=500 height=281]
 
-In order for WP Video Posts to work properly following requirements need to be present on your server.
+In order for all WP Video Posts features to work properly, then FFMPEG is required and need to be installed on your server.
 
 - Server should support **ffmpeg**
 - PHP needs to be compiled with **ffmpeg-PHP extension**
+
+If FFMPEG is not installed, then the plugin still allows you to upload videos to create custom posts, but the video is not encoded nor is a splash image created.  The default image will show as the splash image.
 
 == Installation ==
 
@@ -53,13 +54,16 @@ Q: I'm running WordPress multisite and I get the message that says something abo
 A: If you are using WordPress multisite, then you need to manually list the type of video formats to allow for upload.  This is done by logging in to the wp-admin, and going to 'My Site' => 'Network Admin', then click on 'Settings' => 'Network Settings'.
 Scroll down to the Upload Settings section of the network settings page and add the format in the Upload file types list.
 
+Q: I'm using the plugin but I do not have FFMPEG installed on my server.  How can I create my own default splash image and have it display rather than the default image supplied with the plugin?
+A: You can create an image with the dimensions you want and upload it to your server to override our default_image.png located in the /wp-content/plugins/wp-video-posts/images/ directory.
+
 = What pre-requirements do I need to install this plugin? =
 
 You must Install ffmpeg on your server and recompile PHP with ffmpeg-PHP.  
 
 = What happen if I dont have ffmpeg in my server? =
 
-If you do not have ffmpeg support on your server, this plugin will simply ignore the conversion and proceed with the rest of the process.  
+If you do not have ffmpeg support on your server, this plugin will simply ignore the conversion and proceed with the rest of the process.  The supported file formats without ffmpeg installed would only be FLV and MP4.  In addition, the splash image will not be generated either and the default image will be displayed.
 
 == Screenshots ==
 
@@ -70,6 +74,8 @@ If you do not have ffmpeg support on your server, this plugin will simply ignore
 3. WP Video Posts Options page.
 
 == Changelog ==
+= 1.1 =
+- Added default splash image in case this plugin is used without FFMPEG.
 
 = 1.0 =
 Initial release

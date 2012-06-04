@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 1.0
+Version: 1.1
 Author: Alex Rayan, cmstactics 
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -109,8 +109,7 @@ function wpvp_register_shortcode($atts){
 		'height'=>'360',
 		'splash'=>''
 	),$atts));
-	$flowplayer_code = '<a href="'.$src.'" class="myPlayer"
-    style="display:block;width:'.$width.'px;height:'.$height.'px;margin:10px auto"><img src="'.$splash.'" alt="" /></a>';
+	$flowplayer_code = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$width.'px;height:'.$height.'px;margin:10px auto"><img width="'.$width.'" height="'.$height.'" src="'.$splash.'" alt="" /></a>';
 	return $flowplayer_code;
 }
 add_shortcode('wpvp_flowplayer','wpvp_register_shortcode');
