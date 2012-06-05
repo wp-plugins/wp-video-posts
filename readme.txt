@@ -48,12 +48,11 @@ If FFMPEG is not installed, then the plugin still allows you to upload videos to
 
 6. After the video uploads, it will automatically be encoded.  After this process, the video attachment details open where you can modify the title, caption and description.
 
-7. Once the details have been modified/added if you chose to add those details, click on the Insert into Post button.  It will then add a shortcode that will appear as the following:
-
-[wpvp_flowplayer src=http://yoursite.com/wp-content/uploads/2012/06/MyCar.mp4 width=640 height=360 splash=http://yoursite.com/wp-content/uploads/2012/06/MyCar.jpg] 
+7. Once the details have been modified/added if you chose to add those details, click on the Insert into Post button.  It will then add a shortcode that will appear as the following: [wpvp_flowplayer src=http://yoursite.com/wp-content/uploads/2012/06/MyCar.mp4 width=640 height=360 splash=http://yoursite.com/wp-content/uploads/2012/06/MyCar.jpg] 
 
 8. Add any other details in the post content and click the Publish button.
-- That is all.
+
+9. That is all.
 
 == Installation ==
 
