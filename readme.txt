@@ -35,6 +35,18 @@ In order for all WP Video Posts features to work properly, then FFMPEG is requir
 
 If FFMPEG is not installed, then the plugin still allows you to upload videos to create custom posts, but the video is not encoded nor is a splash image created.  The default image will show as the splash image.
 
+=Instructions=
+- After install, go to the Dashboard.
+- Hover over the Videos menu item and click on Add New Video in the submen for Videos.
+- Add a title to the Video Post.
+- Click the Upload/Insert icon above the post content editor.
+- In the media uploader pop up, add the video you want to attach to this video post.
+- After the video uploads, it will automatically be encoded.  After this process, the video attachment details open where you can modify the title, caption and description.
+- Once the details have been modified/added if you chose to add those details, click on the Insert into Post button.  It will then add a shortcode that will appear as the following:
+[wpvp_flowplayer src=http://yoursite.com/wp-content/uploads/2012/06/MyCar.mp4 width=640 height=360 splash=http://yoursite.com/wp-content/uploads/2012/06/MyCar.jpg] 
+- Add any other details in the post content and click the Publish button.
+- That is all.
+
 == Installation ==
 
 - Upload the wp_video_posts.zip file into `/wp-content/plugins/` directory
