@@ -327,4 +327,95 @@ function wpvp_video_embed($video_code,$width,$height,$type){
 		return '<span style="color:red;">The type is either not set or is not supported.</span>';
 	}
 }
+
+function wpvp_widget_latest_posts($instance){
+//print_r($instance);
+if($instance['width']==''){
+	$instance['width'] = '165';
+}
+if($instance['height']==''){
+	$instance['height']='125';
+}
+if($instance['num_posts']==''){
+        $instance['num_posts']='-1';
+}
+if($instance['display']==''){
+	$instance['display']='v';
+}
+if(!empty($instance['cat_checkbox'])){
+	$num = count($instance['cat_checkbox']);
+	$x = 0;
+	foreach($instance['cat_checkbox'] as $categories){
+		$cat_list .= $categories;
+		if($x<$num){
+			$cat_list .= ',';
+		}	
+		$x++;
+	}
+}
+$args = array(
+        'post_type' => 'videos',
+        'post_status' => 'publish',
+        'numberposts' => $instance['num_posts'],
+	'category'=>$cat_list
+);
+global $post;
+$posts = get_posts($args);
+foreach($posts as $post): setup_postdata($post); 
+	$video_meta_array = get_post_meta($post->ID, 'wpvp_video_code', false);	
+	//print_r($video_meta_array);
+	$video_meta = array_pop($video_meta_array);
+	if($instance['display']=='v'){
+		$style = ' style="margin-bottom:5px;width:'.$instance['width'].'px"';	
+	}
+	else if($instance['display']=='h'){
+		$style = ' style="float:left;margin-right:5px;width:'.$instance['width'].'px"';
+	}
+	if(($instance['display_type']=='th')||($instance['display_type']=='')){
+		if(is_numeric($video_meta)){
+			$vimeo_hash = unserialize(file_get_contents("http://vimeo.com/api/v2/video/$video_meta.php"));
+			$video_img = $vimeo_hash[0]['thumbnail_medium'];
+		}
+		else if(preg_match('/[a-zA-Z0-9_-]{11}/',$video_meta)){ 
+			$video_img = "http://img.youtube.com/vi/".$video_meta."/1.jpg";
+		}
+		else if($video_meta==''){
+			$video_img_attrs = wp_get_attachment_image_src(get_post_thumbnail_id($post->ID), array($instance['width'],$instance['height']));
+			$video_img = $video_img_attrs[0];
+		}
+		$video_item .= '<div class="wpvp_video_item"'.$style.'><a href="'.get_permalink().'"><img src="'.$video_img.'" width="'.$instance['width'].'" height="'.$instance['height'].'" /></a>';
+	} else if($instance['display_type']=='p'){
+		if(is_numeric($video_meta)){
+			$video_player = '<iframe width="'.$instance['width'].'" height="'.$instance['height'].'" src="http://player.vimeo.com/video/'.$video_meta.'" webkitAllowFullScreen mozallowfullscreen allowFullScreen frameborder="0"></iframe>';
+		}
+		else if(preg_match('/[a-zA-Z0-9_-]{11}/',$video_meta)){
+			$video_player = '<iframe width="'.$instance['width'].'" height="'.$instance['height'].'" src="http://www.youtube.com/embed/'.$video_meta.'" frameborder="0" allowfullscreen></iframe>';
+
+		}
+		else if($video_meta==''){
+			$video_meta_array = get_post_meta($post->ID, 'wpvp_fp_code',false);
+			$video_meta = array_pop($video_meta_array);
+			$video_data_array = json_decode($video_meta,true);
+			$src = $video_data_array['src'];
+			$splash = $video_data_array['splash'];
+		//	print_r(' src: '.$src.'splash:'.$splash);
+			$video_player = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$instance['width'].'px;height:'.$instance['height'].'px;"></a>';
+		//<img width="'.$instance['width'].'" height="'.$instance['height'].'" src="'.$splash.'" alt="" /></a>';
+		}
+		$video_item .= '<div class="wpvp_video_item"'.$style.'>'.$video_player;
+	}
+	if($instance['post_title']!=''){
+                $video_item .= '<div><a href="'.get_permalink().'">'.get_the_title().'</a></div>';
+        }
+	if($instance['author']!=''){
+		$video_item .= '<span>'.get_the_author().'</span>';
+	}
+	if($instance['excerpt']!=''){
+		$video_item .= '<br /><span>'.get_the_excerpt().'</span>';
+	}
+	$video_item .= '</div>';
+endforeach;
+echo $video_item;
+return;
+}
 ?>

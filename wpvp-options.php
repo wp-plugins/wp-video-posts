@@ -116,4 +116,12 @@ if($_POST['wpvp_hidden'] == 'Y') {
         	        <input type="submit" name="Submit" value="<?php _e('Update Options' ) ?>" />
 	        </p>
         </form>
+	<br />
+	<hr>
+	<div style="font-weight: bold; font-size: 14px;">Youtube and Vimeo Embed Instructions</div>
+	WP Video Posts allows the embed of Youtube and Vimeo videos with the use of the following shortcodes:
+	<br /><br />
+	<strong>Youtube:</strong> [wpvp_embed type=youtube video_code=vAFQIciWsF4 width=560 height=315]
+	<br /><br />
+	<strong>Vimeo:</strong> [wpvp_embed type=vimeo video_code=23117398 width=500 height=281]
 </div>

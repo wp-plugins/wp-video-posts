@@ -9,6 +9,10 @@ Author URI: http://cmstactics.com
 License: GPLv2 or later
 */
 
+//add_action('widget_init','wpvp_register_widgets');
+require_once( dirname(__FILE__) . '/wpvp-widgets.php');
+add_action('widgets_init', create_function('', 'register_widget("WPVideosForPostsWidget");'));
+
 add_action('init', 'wpvp_init');
 function wpvp_init(){
 	wpvp_register();
@@ -144,4 +148,46 @@ function wpvp_add_video_formats_support($existing_mimes){
 }
 add_filter('upload_mimes','wpvp_add_video_formats_support');
 
+function wpvp_video_code_add_meta($id){
+	global $post;
+	$post_content = $_POST['post_content'];
+	if(!wp_is_post_revision($id)){
+        	$post_id = $id;
+		$post_content = $_POST['post_content'];
+     		if($_POST['post_type']!= 'videos'){
+			//do nothing, not our post type
+        	}
+		else {
+        		//if( (preg_match('/youtube/', $post_content)) || (preg_match('/vimeo/', $post_content)) ){
+			if(preg_match('/wpvp_embed/',$post_content)){
+                		$video_code_start = strpos($post_content, 'video_code=');
+                		$video_code = substr($post_content, $video_code_start+11);
+                		$video_code_end = strpos($video_code, ' ');
+                		$video_code = substr($video_code, 0, $video_code_end);
+         	       		update_post_meta($post_id, 'wpvp_video_code',$video_code);
+        		} else if(preg_match('/wpvp_flowplayer/',$post_content)){
+				//do nothing - no code found
+				$video_code_start = strpos($post_content, 'src=');
+				$splash_code_start = strpos($post_content, 'splash=');
+				$video_code = substr($post_content, $video_code_start+4);
+				$splash_code = substr($post_content, $splash_code_start+7);
+				$video_code_end = strpos($video_code,' ');
+				$video_code = substr($video_code, 0, $video_code_end);
+				$splash_code_end = strpos($splash_code,']');
+				$splash_code = substr($splash_code, 0, $splash_code_end);
+				$fl_codes = array('src'=>$video_code,'splash'=>$splash_code);
+				$fl_codes = json_encode($fl_codes);
+				update_post_meta($post_id, 'wpvp_fp_code',$fl_codes);
+			}
+		}
+	}
+	else {
+		//do nothing, this is a revision, not an actual post
+	}
+}
+add_action('publish_videos','wpvp_video_code_add_meta',20);
+//add_action('pre_post_update','wpvp_video_code_add_meta');
+//add_action('new_to_publish_videos', 'wpvp_video_code_add_meta');
+//add_action('draft_to_publish_videos', 'wpvp_video_code_add_meta');
+//add_action('pending_to_publish_videos', 'wpvp_video_code_add_meta');
 ?>
