@@ -140,10 +140,10 @@ function encode($ID) {
                                 $NewTmbDetails  = pathinfo($newFileTB);
 			}
 			else{
-				$guidTB = plugins_url('/images/', __FILE__).'default_image.png';
+				$guidTB = plugins_url('/images/', __FILE__).'default_image.jpg';
 				$newFile = $originalFileUrl;
-				$NewTmbDetails['basename']='default_image.png';
-				$NewfileDetails['basename']='default_image.png';	
+				$NewTmbDetails['basename']='default_image.jpg';
+				$NewfileDetails['basename']='default_image.jpg';	
 			}
 
 				// To display the player automatically...
@@ -220,15 +220,33 @@ function thumb ( $source, $target ) {
 }
 
 function wpvp_insert_video_into_post($html, $id, $attachment){
-	$attachment = get_post($id);
-	$postParentID = $attachment->post_parent;
-	$postParent = get_post($postParentID);
-	$postContent = $postParent->post_content;
-	if(is_video($attachment->post_mime_type)=='video'){
-		$src = wp_get_attachment_url($id);
-		//dump_encoder('Got into insert function with postContent: '.$postContent);
-	}
-	return $postContent;
+        $options = wpvp_get_options();
+        $width = $options['video_width'];
+        $height = $options['video_height'];
+        $attachmentID = $id;
+        $content = $html;
+        $attachmentObj = get_post($attachmentID);
+        if(is_video($attachmentObj->post_mime_type)=='video'){
+        	$postParentID = $attachmentObj->post_parent;
+                $postParentObj = get_post($postParentID);
+                if($attachmentID>$postID){
+                //Newly Uploaded Video
+                	$postContent = $postParentObj->post_content;
+                        $content = $postContent;
+                } else {
+                //Video From Media Library
+                        $src = wp_get_attachment_url($attachmentID);
+                        $attachments = get_posts(array('post_type'=>'attachment','posts_per_page'=>-1,'post_parent'=>$postParentID,'post_mime_type'=>'image/jpeg'));
+                        if($attachments){
+                		$imgAttachmentID = $attachments[0]->ID;
+                                $imgAttachment = wp_get_attachment_url($imgAttachmentID);
+                       	} else{
+                        	$imgAttachment = plugins_url('/images/', __FILE__).'default_image.jpg';
+                       	}
+                        $content  = '[wpvp_flowplayer src='.$src.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
+               	}
+        } //Check post mime type = video
+        return $content;
 }
 
 function convert ( $source, $target, $format ) {

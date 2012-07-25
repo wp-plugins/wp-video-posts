@@ -3,8 +3,8 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
-Tested up to: 3.4
-Stable tag: 1.2
+Tested up to: 3.4.1
+Stable tag: 1.3
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image. Supports FLV, F4V, MP4, AVI, MOV, 3GP and WMV formats.
@@ -97,6 +97,12 @@ If you do not have ffmpeg support on your server, this plugin will simply ignore
 5. WP Video Posts Widget in action.
 
 == Changelog ==
+= 1.3 =
+- Fixed conflict with media uploader for other plugins and post/page media uploader.
+- Fixed bug with creating video posts with previously uploaded videos being inserted from Media Library.
+- Changed default splash image to be a jpg instead of a png file since the splash image generated when FFMPEG is installed is output as a jpg file.  This allowed us to only have to check for the jpg mime type.
+- Fixed bug for headers being sent message due to echoing flowplayer script include instead of enqueueing the script.
+
 = 1.2 =
 - Added a widget to the plugin to allow you to display your videos that were uploaded or from YouTube or Vimeo.
 - The added widget can display your videos in a vertical or horizontal layout.  It also gives you the options to show the player or thumbnails that link to the video post.  See screenshot-4 for more options available in the widget.

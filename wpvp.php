@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 1.2
+Version: 1.3
 Author: Alex Rayan, cmstactics 
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -34,7 +34,8 @@ function wpvp_add_menu_options(){
 }
 
 function wpvp_head_includes(){
-	echo '<script src="'.plugins_url('/js/', __FILE__).'flowplayer-3.2.10.min.js"></script>';
+	wp_register_script('wpvp_flowplayer', plugins_url('/js/', __FILE__).'flowplayer-3.2.10.min.js');
+        wp_enqueue_script('wpvp_flowplayer');
 }
 add_action('wp_head','wpvp_head_includes');
 
@@ -134,8 +135,13 @@ add_shortcode('wpvp_embed','wpvp_register_embed_shortcode');
 
 //insert the shortcode into the post content
 function wpvp_insert_shortcode_into_post ($html, $id, $attachment) {
-	require_once( dirname(__FILE__) . '/wpvp-functions.php');	
-	$postContent = wpvp_insert_video_into_post($html, $id, $attachment);
+        $postID = intval($_REQUEST['post_id']);
+        $postObj = get_post($postID);
+	$postContent = $html;
+        if($postObj->post_type=='videos'){
+		require_once( dirname(__FILE__) . '/wpvp-functions.php');	
+		$postContent = wpvp_insert_video_into_post($postContent, $id, $attachment);
+	} 
 	return $postContent;
 }
 add_filter('media_send_to_editor','wpvp_insert_shortcode_into_post',20,3);
