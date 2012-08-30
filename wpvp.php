@@ -34,13 +34,20 @@ function wpvp_add_menu_options(){
 }
 
 function wpvp_head_includes(){
+	wp_deregister_script( 'jquery' );
+    	wp_register_script( 'jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js');
+   	wp_enqueue_script( 'jquery' );
 	wp_register_script('wpvp_flowplayer', plugins_url('/js/', __FILE__).'flowplayer-3.2.10.min.js');
         wp_enqueue_script('wpvp_flowplayer');
 }
-add_action('wp_head','wpvp_head_includes');
+add_action('wp_head','wpvp_head_includes',1);
 
-function wpvp_footer_includes(){
-	echo '<script>flowplayer("a.myPlayer", "'.plugins_url('/js/', __FILE__).'flowplayer-3.2.11.swf", { clip:{ autoPlay:false, autoBuffering:true }, plugins: { controls: { volume: true } }});</script>';
+function wpvp_footer_includes(){ 
+	echo '<script type="text/javascript">
+		jQuery(window).load(function(){
+			flowplayer("a.myPlayer", "'.plugins_url('/js/', __FILE__).'flowplayer-3.2.11.swf", { clip:{ autoPlay:false, autoBuffering:true }, plugins: { controls: { volume: true } }});
+		});
+	</script>';
 }
 add_action('wp_footer','wpvp_footer_includes');
 

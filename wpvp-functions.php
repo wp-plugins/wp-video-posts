@@ -267,11 +267,11 @@ function convert ( $source, $target, $format ) {
         	$extra .= "-acodec libfaac -vcodec libx264 -f mp4 -vtag avc1 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +4mv -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
 	}
 
-	$str = "/usr/bin/ffmpeg -y -i ".$source." $extra ".$target;
+	$str = "ffmpeg -y -i ".$source." $extra ".$target;
 	//dump_encoder($str);
 	exec($str);
 
-	$prepare = "/usr/local/bin/MP4Box -inter 100  ".$target;
+	$prepare = "MP4Box -inter 100  ".$target;
 	exec($prepare);	
 
 	return 1;
