@@ -44,7 +44,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 }
 ?>
 <div class="wrap">
-	<?php	echo "<h2>" . __( 'WP Video Posts Options' ) . "</h2>";?>
+	<?php	echo "<h2>" . __( 'WP Video Posts - General Options' ) . "</h2>";?>
 
 	<!-- PayPal Donate -->
 	<?php echo "<h3>Please donate if you enjoy this plugin (WPVP):</h3>"; ?>
@@ -63,23 +63,23 @@ if($_POST['wpvp_hidden'] == 'Y') {
 		<input type="hidden" name="wpvp_hidden" value="Y">
 		<p>
                         <strong><?php _e("Converted video width: " ); ?></strong>
-			<input type="text" name="wpvp_video_width" value="<?php echo $wpvp_width; ?>" size="5" /> <?php _e("(in pixels)"); ?>
+			<input type="text" name="wpvp_video_width" value="<?php echo $wpvp_width; ?>" size="5" /> <?php _e("(in pixels) Default 640px"); ?>
 		</p>
 		<p>
                         <strong><?php _e("Converted video height: " ); ?></strong>
-                        <input type="text" name="wpvp_video_height" value="<?php echo $wpvp_height; ?>" size="5" /> <?php _e("(in pixels)"); ?> 
+                        <input type="text" name="wpvp_video_height" value="<?php echo $wpvp_height; ?>" size="5" /> <?php _e("(in pixels) Default 360px"); ?> 
                 </p>
 		<p>
                         <strong><?php _e("Converted video thumbnail width: " ); ?></strong>
-                        <input type="text" name="wpvp_thumb_width" value="<?php echo $wpvp_thumb_width; ?>" size="5" /> <?php _e("(in pixels)"); ?> 
+                        <input type="text" name="wpvp_thumb_width" value="<?php echo $wpvp_thumb_width; ?>" size="5" /> <?php _e("(in pixels) Default 640px"); ?> 
                 </p>
 		<p>
                         <strong><?php _e("Converted video thumbnail height: " ); ?></strong>
-                        <input type="text" name="wpvp_thumb_height" value="<?php echo $wpvp_thumb_height; ?>" size="5" /> <?php _e("(in pixels)"); ?>
+                        <input type="text" name="wpvp_thumb_height" value="<?php echo $wpvp_thumb_height; ?>" size="5" /> <?php _e("(in pixels) Default 360px"); ?>
                 </p>
 		<p>
                         <strong><?php _e("Capture Splash Image: " ); ?></strong>
-                        <input type="text" name="wpvp_capture_image" value="<?php echo $wpvp_capture_image; ?>" size="5" /> <?php _e("(in seconds)"); ?>
+                        <input type="text" name="wpvp_capture_image" value="<?php echo $wpvp_capture_image; ?>" size="5" /> <?php _e("(in seconds) Default 5 seconds"); ?>
                 </p>
 <?php /*You can uncomment it out to let the user choose categories to assign video posts to by default. It will be used in case the automated functionality is desired. Some changes have to be done to the code in wpvp-functions.php*/
 /*
@@ -116,12 +116,4 @@ if($_POST['wpvp_hidden'] == 'Y') {
         	        <input type="submit" name="Submit" value="<?php _e('Update Options' ) ?>" />
 	        </p>
         </form>
-	<br />
-	<hr>
-	<div style="font-weight: bold; font-size: 14px;">Youtube and Vimeo Embed Instructions</div>
-	WP Video Posts allows the embed of Youtube and Vimeo videos with the use of the following shortcodes:
-	<br /><br />
-	<strong>Youtube:</strong> [wpvp_embed type=youtube video_code=vAFQIciWsF4 width=560 height=315]
-	<br /><br />
-	<strong>Vimeo:</strong> [wpvp_embed type=vimeo video_code=23117398 width=500 height=281]
 </div>

@@ -3,7 +3,7 @@
 class WPVideosForPostsWidget extends WP_Widget
 {
         function WPVideosForPostsWidget(){
-                $widget_ops = array(    'classname' => 'WP Videos Posts',
+                $widget_ops = array(    'classname' => 'wp-videos-posts',
                                         'description' => 'Displays the embedded videos from YouTube or Vimeo');
                 $this->WP_Widget('WPVideosForPostsWidget','WP Videos Posts',$widget_ops);
         }

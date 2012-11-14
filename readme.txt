@@ -3,8 +3,8 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
-Tested up to: 3.4.1
-Stable tag: 1.4
+Tested up to: 3.4.2
+Stable tag: 1.5
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image. Supports FLV, F4V, MP4, AVI, MOV, 3GP and WMV formats.
@@ -31,7 +31,6 @@ Vimeo:
 In order for all WP Video Posts features to work properly, then FFMPEG is required and need to be installed on your server.
 
 - Server should support **ffmpeg**
-- PHP needs to be compiled with **ffmpeg-PHP extension**
 
 If FFMPEG is not installed, then the plugin still allows you to upload videos to create custom posts, but the video is not encoded nor is a splash image created.  The default image will show as the splash image.
 
@@ -76,6 +75,37 @@ Scroll down to the Upload Settings section of the network settings page and add 
 Q: I'm using the plugin but I do not have FFMPEG installed on my server.  How can I create my own default splash image and have it display rather than the default image supplied with the plugin?
 A: You can create an image with the dimensions you want and upload it to your server to override our default_image.png located in the /wp-content/plugins/wp-video-posts/images/ directory.
 
+Q: How do I install FFMPEG if I have root access on my server?
+A: If you have either CentOS, RedHat or Fedora you can follow these steps:
+    1. First you would need to install the DAG RPM repositories which contains
+    huge amount of rpm packages:
+
+    For Linux 5 / x86_64 (please, Google commands for other versions of
+    Linux):
+
+    Type the following on the command line:
+    rpm -Uhv http://apt.sw.be/redhat/el5/en/x86_64/rpmforge/RPMS//rpmforge-release-0.3.6-1.el5.rf.x86_64.rpm
+
+    2. Type the following on the command line:
+    yum install ffmpeg ffmpeg-devel
+
+    3. Restart Apache.  An example for CentOS would be:
+    Type the following on the command line:
+    sudo /etc/init.d/httpd restart
+
+Q: I have ffmpeg on the server but encoding of the video doesn't work for me
+A: Check what version of ffmpeg is installed. We usually recommend FFmpeg version 0.6.5 (currently, the latest stable) with the following configuration:
+
+configuration: --prefix=/usr --enable-gpl --enable-libopencore-amrnb
+--enable-libopencore-amrwb --enable-libx264 --enable-version3 --enable-libfaac
+--enable-nonfree
+
+To check the codecs supported, type the following on the command line:
+
+ffmpeg -codecs | less
+
+Make sure libfaac and libx264 are among the codecs available for you.
+
 = What pre-requirements do I need to install this plugin? =
 
 You must Install ffmpeg on your server and recompile PHP with ffmpeg-PHP.  
@@ -96,7 +126,20 @@ If you do not have ffmpeg support on your server, this plugin will simply ignore
 
 5. WP Video Posts Widget in action.
 
+6. WP Video Posts Front End Uploader.
+
 == Changelog ==
+= 1.5 =
+- Added front end video uploader and front end editor functionality to allow users and/or other bloggers of your site to upload videos without having to have access to the dashboard.
+	- Control who is allowed to upload videos from the front end.
+	- Choose the default post status for videos uploaded from the front end.
+	- Choose whether users who upload videos receive a notification email once the video has been published.  Only works for video posts who are defaulted to Draft or Pending Review statuses.
+	- Choose which categories uploaded videos are allowed to be saved into.
+	- Filter extension types which are allowed to be uploaded.
+- Added more features in the WP Video Posts Options for the administrator.
+- Added support for post tags.
+- Cleaned up CSS and Javascript.
+
 = 1.4 =
 - Removed hardcoded path for FFMPEG where we thought was standard but it varies among various hosting providers.
 - Attempted to mitigate javascript conflict with other plugins and themes.
