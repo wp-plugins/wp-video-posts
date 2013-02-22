@@ -43,6 +43,7 @@ function wpvp_add_menu_options(){
 				break;
 				case 'shortcodes':
 					include('wpvp-shortcodes-options.php');
+				break;
 				case 'general':
 				default:
                 			include('wpvp-options.php');
