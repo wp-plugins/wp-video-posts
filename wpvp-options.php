@@ -23,6 +23,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
         $wpvp_thumb_width = $_POST['wpvp_thumb_width'];
 	$wpvp_thumb_height = $_POST['wpvp_thumb_height'];
 	$wpvp_capture_image = $_POST['wpvp_capture_image'];
+	$wpvp_ffmpeg_path = $_POST['wpvp_ffmpeg_path'];
 //	$wpvp_category_list = $_POST['post_category'];
 	
 	update_option('wpvp_video_width', $wpvp_width);
@@ -30,6 +31,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	update_option('wpvp_thumb_width', $wpvp_thumb_width);
 	update_option('wpvp_thumb_height', $wpvp_thumb_height);
 	update_option('wpvp_capture_image', $wpvp_capture_image);
+	update_option('wpvp_ffmpeg_path', $wpvp_ffmpeg_path);
 //	update_option('post_category', $wpvp_category_list);
 ?>
 <div class="updated"><p><strong><?php _e('Options saved.' ); ?></strong></p></div>
@@ -40,6 +42,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_thumb_width = get_option('wpvp_thumb_width');
 	$wpvp_thumb_height = get_option('wpvp_thumb_height');
 	$wpvp_capture_image = get_option('wpvp_capture_image');
+	$wpvp_ffmpeg_path = get_option('wpvp_ffmpeg_path');
 //	$wpvp_category_list = get_option('post_category');
 }
 ?>
@@ -57,10 +60,14 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	<hr>
 
 	<?php 	if(!$ffmpeg_installed){
-		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly.<br />Please verify with your administrator or hosting provider to have this installed and configured.</h3><br />';
+		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
 	} ?>	
 	<form name="wpvp_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 		<input type="hidden" name="wpvp_hidden" value="Y">
+		<p>
+                        <strong><?php _e("Path to ffmpeg installation (optional): " ); ?></strong>
+                        <input type="text" name="wpvp_ffmpeg_path" value="<?php echo $wpvp_ffmpeg_path; ?>" size="25" /> <?php _e("(example: /usr/local/bin/)"); ?>
+                </p>
 		<p>
                         <strong><?php _e("Converted video width: " ); ?></strong>
 			<input type="text" name="wpvp_video_width" value="<?php echo $wpvp_width; ?>" size="5" /> <?php _e("(in pixels) Default 640px"); ?>

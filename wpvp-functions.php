@@ -21,6 +21,7 @@ function wpvp_get_options(){
 	$thumb_width = get_option('wpvp_thumb_width','640');
 	$thumb_height = get_option('wpvp_thumb_height','360');
 	$capture_image = get_option('wpvp_capture_image','5');	
+	$ffmpeg_path = get_option('wpvp_ffmpeg_path','');	
 
 	//$category_list = get_option('post_category');
 	$wpvp_options['video_width']=$video_width;
@@ -28,6 +29,7 @@ function wpvp_get_options(){
 	$wpvp_options['thumb_width']=$thumb_width;
 	$wpvp_options['thumb_height']=$thumb_height;
 	$wpvp_options['capture_image']=$capture_image;
+	$wpvp_options['ffmpeg_path']=$ffmpeg_path;
 	//$wpvp_options['category_list']=$category_list;
 	return $wpvp_options;
 }
@@ -39,6 +41,7 @@ function encode($ID,$front_end_postID=NULL) {
 
 		$width = $options['video_width'];
 		$height = $options['video_height'];
+		$ffmpeg_path = $options['ffmpeg_path'];
 		//$category = $options['category_list'];
 		
 		// What format should we convert to?
@@ -112,7 +115,7 @@ function encode($ID,$front_end_postID=NULL) {
 				$newFileTB = $dirnameGet .'/'.$fname.$thumbfmt;
 				$guidTB = $GuidPath . '/' . $fname.$thumbfmt;
 				
-				if (ffmpegCommandExistsCheck("ffmpeg")>0){
+				if (ffmpegCommandExistsCheck($ffmpeg_path."ffmpeg")>0){
 					$file_encoded = 1;
 					if(file_exists($newFile))
 						$i = $i=='' ? 1 : $i+1;			
@@ -224,9 +227,10 @@ function thumb ( $source, $target ) {
         $width = $options['thumb_width'];
         $height = $options['thumb_height'];
         $capture_image = $options['capture_image'];
+	$ffmpeg_path = $options['ffmpeg_path'];
 
         $extra = '-vframes 1 -s '.$width.'x'.$height.' -ss '.$capture_image.' -f image2';
-	$str = "ffmpeg -y -i ".$source." ". $extra ." ".$target;
+	$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target;
 	//wpvp_dump($str);
 	return exec($str);
 }
@@ -270,16 +274,17 @@ function convert ( $source, $target, $format ) {
 
         $width = $options['video_width'];
         $height = $options['video_height'];
+	$ffmpeg_path = $options['ffmpeg_path'];
 
 	//wpvp_dump('convert width and height '.$width.' '.$height.'...');
 	
         $extra = "-s ${width}x${height} -ar 44100 -b 384k -ac 2 ";
 
 	if ($encodeFormat=='mp4') {
-        	$extra .= "-acodec libfaac -vcodec libx264 -f mp4 -vtag avc1 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
+        	$extra .= "-acodec libfaac -vcodec libx264 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
 	}
 
-	$str = "ffmpeg -y -i ".$source." $extra ".$target;
+	$str = $ffmpeg_path."ffmpeg -i ".$source." $extra ".$target;
 	//wpvp_dump($str);
 	exec($str);
 
