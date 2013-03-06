@@ -228,8 +228,15 @@ function thumb ( $source, $target ) {
         $height = $options['thumb_height'];
         $capture_image = $options['capture_image'];
 	$ffmpeg_path = $options['ffmpeg_path'];
+	if($width!=''&&$width!=''){
+		$dimensions = ' -s '.$width.'x'.$height;
+	} else {
+		$dimensions = '';
+	}
+	if($capture_image=='')
+		$capture_image = 5;
 
-        $extra = '-vframes 1 -s '.$width.'x'.$height.' -ss '.$capture_image.' -f image2';
+        $extra = '-vframes 1 '.$dimensions.' -ss '.$capture_image.' -f image2';
 	$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target;
 	//wpvp_dump($str);
 	return exec($str);
@@ -277,8 +284,13 @@ function convert ( $source, $target, $format ) {
 	$ffmpeg_path = $options['ffmpeg_path'];
 
 	//wpvp_dump('convert width and height '.$width.' '.$height.'...');
+	if($width!=''&&$width!=''){
+		$dimensions = ' -s '.$width.'x'.$height.' ';
+	} else {
+		$dimensions = '';
+	}
 	
-        $extra = "-s ${width}x${height} -ar 44100 -b 384k -ac 2 ";
+        $extra = $dimensions."-ar 44100 -b 384k -ac 2 ";
 
 	if ($encodeFormat=='mp4') {
         	$extra .= "-acodec libfaac -vcodec libx264 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
@@ -287,6 +299,9 @@ function convert ( $source, $target, $format ) {
 	$str = $ffmpeg_path."ffmpeg -i ".$source." $extra ".$target;
 	//wpvp_dump($str);
 	exec($str);
+	if(!file_exists($target)){
+		exec($ffmpeg_path."ffmpeg -i ".$source.$dimensions." -acodec libfaac -vcodec libx264 ".$target);
+	}
 
 	$prepare = "MP4Box -inter 100  ".$target;
 	exec($prepare);	
