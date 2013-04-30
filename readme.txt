@@ -4,10 +4,10 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
 Tested up to: 3.5.1
-Stable tag: 1.5.4
+Stable tag: 2.0
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
-and creates splash image. Supports FLV, F4V, MP4, AVI, MOV, 3GP and WMV formats.
+and creates splash image.
 
 == Description ==
 
@@ -17,7 +17,8 @@ format to enhance the performance so that it loads and plays fast.  It creates
 snapshot of a specified frame at a specific time to create the splash image
 for the video. This plugin enables WordPress the ability to allow the
 following formats to be uploaded as well as convert them to the finalized MP4
-format for playing; FLV, F4V, MP4, AVI, MOV, 3GP and WMV formats.
+format for playing; FLV, F4V, MP4, AVI, MOV, 3GP and WMV formats.  
+Important Note: If FFMPEG is NOT installed then the supported formats for playing videos are FLV and MP4 formats and the splash image will not be created and the default image will be shown. You can always encode your video and create a splash image manually.
 
 In addition, WP Video Posts allows the embed of Youtube and Vimeo videos with
 the use of the following shortcodes:
@@ -27,12 +28,6 @@ Youtube:
 
 Vimeo:
 [wpvp_embed type=vimeo video_code=23117398 width=500 height=281]
-
-In order for all WP Video Posts features to work properly, then FFMPEG is required and need to be installed on your server.
-
-- Server should support **ffmpeg**
-
-If FFMPEG is not installed, then the plugin still allows you to upload videos to create custom posts, but the video is not encoded nor is a splash image created.  The default image will show as the splash image.
 
 = Instructions =
 1. After install, go to the Dashboard.
@@ -114,6 +109,8 @@ You must Install ffmpeg on your server and recompile PHP with ffmpeg-PHP.
 
 If you do not have ffmpeg support on your server, this plugin will simply ignore the conversion and proceed with the rest of the process.  The supported file formats without ffmpeg installed would only be FLV and MP4.  In addition, the splash image will not be generated either and the default image will be displayed.
 
+You can convert your video manually by using online resources or programs on your computer.  One online resource is this: http://video.online-convert.com/convert-to-flv
+
 == Screenshots ==
 
 1. Video Posts page displaying your video posts.
@@ -129,6 +126,17 @@ If you do not have ffmpeg support on your server, this plugin will simply ignore
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 2.0 =
+- Major code restucturing (if anyone cares): moved all the functions into classes and cleaned up the code (fewer functions and compressed variable checks)
+- Added an option to display video posts in the main Wordpress query (on latest posts page (front page), category, tags, author, and feeds)
+- Insert error message into post description if FFMPEG is not installed.
+- Bug fix: meta data not being recorded on post upload from front end and with posts set to "Publish"
+- Bug fix: checking for set up width only for thumbnails on ffmpeg encoding
+- Bug fix: attaching incorrect image path as a featured image when the video is not encoded due to the absence of ffmpeg on the server (no featured image is set now for this case)
+- Removed jquery deregister/register and enqueued script with jquery dependency instead
+- Removed the inline scripts from the footer and put all js scripts into external files.
+- Debugger added: option to enable debug mode in the options. Results are being written to /tmp/debug.log.
+
 = 1.5.4 =
 - Fixed issue with dimensions in the plugin configurations for height and width.
 - Added a check to the encoded file to determine what tags was used.

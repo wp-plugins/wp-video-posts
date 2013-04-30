@@ -1,20 +1,12 @@
 <?php 
-if (ffmpegCommandExists("ffmpeg")>0) {
-        // FFMPEG Exists on server
-        //echo "FFMPEG IS installed";
+$helper = new WPVP_Helper();
+if($helper->wpvp_command_exists_check("ffmpeg")>0) {
+        //FFMPEG is installed and found on the serverr
         $ffmpeg_installed = true;
 } else {
-        // No FFMPEG
-        //echo "FFMPEG is NOT installed";
+        // No FFMPEG installed or found
         $ffmpeg_installed = false;
 }
-
-function ffmpegCommandExists($command) {
-    $command = escapeshellarg($command);
-    $exists = exec($command." -h",$out);
-    return sizeof($out);
-}
-
 if($_POST['wpvp_uploader_hidden'] == 'Y') {
         //Form data sent
        	$wpvp_allow_guest = $_POST['wpvp_allow_guest'];
@@ -25,7 +17,6 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
        	$wpvp_uploader_cats = $_POST['wpvp_uploader_cats'];
 	$wpvp_uploader_tags = $_POST['wpvp_uploader_tags'];
 	$wpvp_allowed_extensions = $_POST['wpvp_allowed_extensions'];
-	
 	update_option('wpvp_allow_guest', $wpvp_allow_guest);
 	update_option('wpvp_uploader_roles', $wpvp_uploader_roles);
 	update_option('wpvp_denial_message', $wpvp_denial_message);
@@ -38,11 +29,11 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
 <div class="updated"><p><strong><?php _e('Options saved.' ); ?></strong></p></div>
 <?php
 } else{
-	$wpvp_allow_guest = get_option('wpvp_allow_guest');
+	$wpvp_allow_guest = get_option('wpvp_allow_guest','no') ? get_option('wpvp_allow_guest','no') : 'no';
 	$wpvp_uploader_roles = get_option('wpvp_uploader_roles');
 	$wpvp_denial_message = get_option('wpvp_denial_message');
-	$wpvp_default_post_status = get_option('wpvp_default_post_status');
-	$wpvp_published_notification = get_option('wpvp_published_notification');
+	$wpvp_default_post_status = get_option('wpvp_default_post_status','pending') ? get_option('wpvp_default_post_status','pending') : 'pending';
+	$wpvp_published_notification = get_option('wpvp_published_notification','no') ? get_option('wpvp_published_notification','no') : 'no';
 	$wpvp_uploader_cats = get_option('wpvp_uploader_cats');
 	$wpvp_uploader_tags = get_option('wpvp_uploader_tags');
 	$wpvp_allowed_extensions = get_option('wpvp_allowed_extensions');
@@ -50,7 +41,6 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
 ?>
 <div class="wrap">
 	<?php	echo "<h2>" . __( 'WP Video Posts - Front End Uploader Options' ) . "</h2>";?>
-
 	<!-- PayPal Donate -->
 	<?php echo "<h3>Please donate if you enjoy this plugin (WPVP):</h3>"; ?>
 		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
@@ -61,7 +51,7 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
 		</form>
 	<hr>
 <?php   if(!$ffmpeg_installed){
-                echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly.<br />Please verify with your administrator or hosting provider to have this installed and configured.</h3><br />';
+		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly. The only extensions available for the upload will be mp4 and flv.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
         } ?>
 	<p><?php _e('In order to display front end uploader on a page, please insert the following shortcode into the page:<br /> <strong>[wpvp_upload_video]</strong>');?></p>
 	<form name="wpvp_uploader_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
@@ -98,7 +88,7 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
                 
                 <p>
                         <p><?php _e('Message to display to the user who does not have sufficient privileges to use front end uploader:');?></p>
-                        <input type="text" id="wpvp_denial_message" name="wpvp_denial_message" size="100" value="<?php echo $wpvp_denial_message; ?>" />
+                        <input type="text" id="wpvp_denial_message" name="wpvp_denial_message" size="100" value="<?php echo stripslashes($wpvp_denial_message); ?>" />
                 </p>
                 <br />
                 
@@ -153,10 +143,21 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
 		<p>
 			<strong><?php _e('Select allowed extensions to upload:');?><br /></strong>
 		<?php	$allowed = get_allowed_mime_types();
+			if(!$ffmpeg_installed){
+				$allowed_types = array('flv'=>'video/x-flv','mp4|m4v'=>'video/mp4');
+				echo '<div style="color:red;font-style:italic;">No ffmpeg detected. Only mp4 and flv are available for the upload.</div>';
+			} else {
+				$allowed_types = $allowed;
+			}
                         foreach($allowed as $key=>$value){
                              	$t = explode('/',$value);
                                	if($t[0]=='video'){
 					$types .= '<input type="checkbox" name="wpvp_allowed_extensions[]"';
+					if(is_array($allowed_types)){
+						if(!in_array($value,$allowed_types)){
+							$types .= ' disabled="true"';
+						}
+					}
                                         if(is_array($wpvp_allowed_extensions)) {
         					if(in_array($value,$wpvp_allowed_extensions)){
 	        					$types .= ' checked="checked"';

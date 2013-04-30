@@ -1,21 +1,12 @@
 <?php 
-if (ffmpegCommandExists("ffmpeg")>0) {
-	// FFMPEG Exists on server
-        //echo "FFMPEG IS installed";
-	$ffmpeg_installed = true;
+$helper = new WPVP_Helper();
+if($helper->wpvp_command_exists_check("ffmpeg")>0) {
+        //FFMPEG is installed and found on the serverr
+        $ffmpeg_installed = true;
 } else {
-	// No FFMPEG
-        //echo "FFMPEG is NOT installed";
-	$ffmpeg_installed = false;
+        // No FFMPEG installed or found
+        $ffmpeg_installed = false;
 }
-
-function ffmpegCommandExists($command) {
-    $command = escapeshellarg($command);
-    $exists = exec($command." -h",$out);
-    return sizeof($out);
-}
-
-
 if($_POST['wpvp_hidden'] == 'Y') {
         //Form data sent
         $wpvp_width = $_POST['wpvp_video_width'];
@@ -23,14 +14,11 @@ if($_POST['wpvp_hidden'] == 'Y') {
         $wpvp_thumb_width = $_POST['wpvp_thumb_width'];
 	$wpvp_thumb_height = $_POST['wpvp_thumb_height'];
 	$wpvp_capture_image = $_POST['wpvp_capture_image'];
-//	$wpvp_category_list = $_POST['post_category'];
-	
 	update_option('wpvp_video_width', $wpvp_width);
 	update_option('wpvp_video_height', $wpvp_height);
 	update_option('wpvp_thumb_width', $wpvp_thumb_width);
 	update_option('wpvp_thumb_height', $wpvp_thumb_height);
 	update_option('wpvp_capture_image', $wpvp_capture_image);
-//	update_option('post_category', $wpvp_category_list);
 ?>
 <div class="updated"><p><strong><?php _e('Options saved.' ); ?></strong></p></div>
 <?php
@@ -40,12 +28,10 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_thumb_width = get_option('wpvp_thumb_width');
 	$wpvp_thumb_height = get_option('wpvp_thumb_height');
 	$wpvp_capture_image = get_option('wpvp_capture_image');
-//	$wpvp_category_list = get_option('post_category');
 }
 ?>
 <div class="wrap">
 	<?php	echo "<h2>" . __( 'WP Video Posts - Shortcodes Reminder' ) . "</h2>";?>
-
 	<!-- PayPal Donate -->
 	<?php echo "<h3>Please donate if you enjoy this plugin (WPVP):</h3>"; ?>
 		<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
@@ -57,7 +43,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	<hr>
 
 	<?php 	if(!$ffmpeg_installed){
-		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly.<br />Please verify with your administrator or hosting provider to have this installed and configured.</h3><br />';
+		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly. The only extensions available for the upload will be mp4 and flv.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
 	} ?>	
 	<div style="font-weight: bold; font-size: 14px;"><?php _e('Youtube and Vimeo Embed Instructions');?></div>
 	<?php _e('WP Video Posts allows the embed of Youtube and Vimeo videos with the use of the following shortcodes:');?>
