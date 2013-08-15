@@ -217,7 +217,7 @@ class WPVP_Encode_Media{
 		$height = $this->options['thumb_height'];
 		$capture_image = $this->options['capture_image'];
 		$ffmpeg_path = $this->options['ffmpeg_path'];
-		$dimensions = ($width!=''&&$height!='') ? '-s'.$width.'x'.$height : '';
+		$dimensions = ($width!=''&&$height!='') ? '-s '.$width.'x'.$height : '';
 		$capture_image = $capture_image ? $capture_image : 5;
 		$extra = '-vframes 1 '.$dimensions.' -ss '.$capture_image.' -f image2';
 		$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target;
@@ -232,8 +232,9 @@ class WPVP_Encode_Media{
 		$width = $this->options['video_width'];
 		$height = $this->options['video_height'];
 		$ffmpeg_path = $this->options['ffmpeg_path'];
-		$dimensions = ($width!=''&&$height!='') ? ' -s'.$width.'x'.$height : '';
-		$extr = $dimensions."-ar 44100 -b 384k -ac 2 ";
+		$dimensions = ($width!=''&&$height!='') ? ' -s '.$width.'x'.$height : '';
+		//typo fix
+		$extra = $dimensions."-ar 44100 -b 384k -ac 2 ";
 		if ($encodeFormat=='mp4') {
         		$extra .= "-acodec libfaac -vcodec libx264 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
 		}

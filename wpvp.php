@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 2.0.1
+Version: 2.0.2
 Author: Alex Rayan, cmstactics 
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -134,41 +134,55 @@ class WPVPMediaEncoder{
         	echo '</h2>';
       	}
 	/*
-	**register custom post type: videos on init action hook
-	*@access private
-	*/
-	public function wpvp_register_videos_post_type(){
-        	$labels = array(
-                	'name' => _x('Videos', 'post type general name'),
-	                'singular_name' => _x('Video Item', 'post type singular name'),
-        	        'add_new' => _x('Add New Video', 'video item'),
-                	'add_new_item' => __('Add New Video Item'),
-	                'edit_item' => __('Edit Video Item'),
-        	        'new_item' => __('New Video Item'),
-                	'view_item' => __('View Video Item'),
-	                'search_items' => __('Search Video'),
-        	        'not_found' =>  __('Nothing found'),
-                	'not_found_in_trash' => __('Nothing found in Trash'),
-	                'parent_item_colon' => ''
-        	);
-	        $args = array(
-        	        'labels' => $labels,
-                	'public' => true,
-	                'publicly_queryable' => true,
-        	        'show_ui' => true,
-                	'query_var' => true,
-	                'menu_icon' => plugins_url('/images/', __FILE__) . 'videos_menu_icon.png',
-        	        //'rewrite' => true,
-                	'rewrite' => array('slug'=>'videos'),
-	                'capability_type' => 'post',
-        	        'hierarchical' => false,
-                	'menu_position' => null,
-	                'supports' => array('title','editor','thumbnail','comments','author','custom-fields'),
-        	        'taxonomies'=>array('post_tag')
-	          );
-        	register_post_type( 'videos' , $args );
-        	register_taxonomy_for_object_type('category','videos');
-	}
+    **register custom post type: videos on init action hook
+    *@access static
+    */
+    static function wpvp_register_videos_post_type(){
+            $labels = array(
+                'name' => _x('Videos', 'post type general name'),
+                'singular_name' => _x('Video Item', 'post type singular name'),
+                'add_new' => _x('Add New Video', 'video item'),
+				'add_new_item' => __('Add New Video Item'),
+                'edit_item' => __('Edit Video Item'),
+                'new_item' => __('New Video Item'),
+                'view_item' => __('View Video Item'),
+                'search_items' => __('Search Video'),
+                'not_found' =>  __('Nothing found'),
+                'not_found_in_trash' => __('Nothing found in Trash'),
+                'parent_item_colon' => ''
+			);
+            $args = array(
+				'labels' => $labels,
+                'public' => true,
+                'publicly_queryable' => true,
+                'show_ui' => true,
+                'query_var' => true,
+                'menu_icon' => plugins_url('/images/', __FILE__) . 'videos_menu_icon.png',
+                'rewrite' => array('slug'=>'videos'),
+                'capability_type' => 'post',
+                'hierarchical' => false,
+                'menu_position' => null,
+                'supports' => array('title','editor','thumbnail','comments','author','custom-fields'),
+                'taxonomies'=>array('post_tag')
+            );
+            register_post_type( 'videos' , $args );
+            register_taxonomy_for_object_type('category','videos');
+    }
+    /**
+    *Flush rewrite rules on plugin reactivation
+    *@access static
+    **/
+    static function wpvp_create_video_post_flush_rewrite_rules(){
+            self::wpvp_register_videos_post_type();
+            self::wpvp_flush_rewrite_rules();
+    }
+	/**
+    *Flush rewrite rules
+    *@access static
+    **/
+    static function wpvp_flush_rewrite_rules(){
+			flush_rewrite_rules();
+    }
 	/*
 	*Enqueue scripts on wp_enqueue_scripts action hook
 	*@action public
@@ -176,10 +190,10 @@ class WPVPMediaEncoder{
 	public function wpvp_enqueue_scripts(){
 	        wp_enqueue_script('wpvp_flowplayer',plugins_url('/js/', __FILE__).'flowplayer-3.2.10.min.js',array('jquery'),NULL);
         	wp_enqueue_script( 'wpvp_front_end_js',plugins_url('/js/', __FILE__).'wpvp-front-end.js',array('jquery'),NULL );
-		wp_enqueue_script( 'wpvp_flowplayer_js',plugins_url('/js/',__FILE__).'wpvp_flowplayer.js',array('jquery','wpvp_flowplayer'),NULL);
-		$swf_loc = plugins_url('/js/', __FILE__).'flowplayer-3.2.11.swf';
-		$vars_to_pass = array('swf'=>$swf_loc);
-		wp_localize_script('wpvp_flowplayer_js','object_name',$vars_to_pass);
+			wp_enqueue_script( 'wpvp_flowplayer_js',plugins_url('/js/',__FILE__).'wpvp_flowplayer.js',array('jquery','wpvp_flowplayer'),NULL);
+			$swf_loc = plugins_url('/js/', __FILE__).'flowplayer-3.2.11.swf';
+			$vars_to_pass = array('swf'=>$swf_loc);
+			wp_localize_script('wpvp_flowplayer_js','object_name',$vars_to_pass);
         	wp_enqueue_style('wpvp_widget',plugins_url('/css/', __FILE__).'style.css');
 	}
 	/**
@@ -389,4 +403,6 @@ class WPVPMediaEncoder{
 endif;
 
 add_action('plugins_loaded',array('WPVPMediaEncoder','init'));
+register_activation_hook( __FILE__, array('WPVPMediaEncoder', 'wpvp_create_video_post_flush_rewrite_rules' ) );
+register_deactivation_hook( __FILE__, array('WPVPMediaEncoder', 'wpvp_flush_rewrite_rules' ) );
 ?>
