@@ -234,7 +234,7 @@ class WPVP_Encode_Media{
 		$ffmpeg_path = $this->options['ffmpeg_path'];
 		$dimensions = ($width!=''&&$height!='') ? ' -s '.$width.'x'.$height : '';
 		//typo fix
-		$extra = $dimensions."-ar 44100 -b 384k -ac 2 ";
+		$extra = $dimensions." -ar 44100 -b 384k -ac 2 ";
 		if ($encodeFormat=='mp4') {
         		$extra .= "-acodec libfaac -vcodec libx264 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
 		}
