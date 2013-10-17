@@ -1,12 +1,4 @@
 <?php 
-$helper = new WPVP_Helper();
-if($helper->wpvp_command_exists_check("ffmpeg")>0) {
-        //FFMPEG is installed and found on the serverr
-        $ffmpeg_installed = true;
-} else {
-        // No FFMPEG installed or found
-        $ffmpeg_installed = false;
-}
 if($_POST['wpvp_hidden'] == 'Y') {
         //Form data sent
         $wpvp_width = $_POST['wpvp_video_width'];
@@ -41,10 +33,6 @@ if($_POST['wpvp_hidden'] == 'Y') {
 			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
 		</form>
 	<hr>
-
-	<?php 	if(!$ffmpeg_installed){
-		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly. The only extensions available for the upload will be mp4 and flv.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
-	} ?>	
 	<div style="font-weight: bold; font-size: 14px;"><?php _e('Youtube and Vimeo Embed Instructions');?></div>
 	<?php _e('WP Video Posts allows the embed of Youtube and Vimeo videos with the use of the following shortcodes:');?>
 	<br /><br />

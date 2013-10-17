@@ -1,12 +1,7 @@
 <?php 
 $helper = new WPVP_Helper();
-if($helper->wpvp_command_exists_check("ffmpeg")>0) {
-        //FFMPEG is installed and found on the serverr
-        $ffmpeg_installed = true;
-} else {
-        // No FFMPEG installed or found
-        $ffmpeg_installed = false;
-}
+$ffmpeg_c = $helper->wpvp_check_extension('ffmpeg');
+$ffmpeg_ext = (is_array($ffmpeg_c)&&!empty($ffmpeg_c)) ? true : false;
 if($_POST['wpvp_uploader_hidden'] == 'Y') {
         //Form data sent
        	$wpvp_allow_guest = $_POST['wpvp_allow_guest'];
@@ -50,9 +45,9 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
 			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
 		</form>
 	<hr>
-<?php   if(!$ffmpeg_installed){
-		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly. The only extensions available for the upload will be mp4 and flv.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
-        } ?>
+<?php   if(!$ffmpeg_ext){
+			echo '<h3 style="color: red;">FFMPEG is not found on the server. The only extensions available for uploading: mp4.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation.</h3><br />';
+		} ?>
 	<p><?php _e('In order to display front end uploader on a page, please insert the following shortcode into the page:<br /> <strong>[wpvp_upload_video]</strong>');?></p>
 	<form name="wpvp_uploader_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 		<input type="hidden" name="wpvp_uploader_hidden" value="Y">
@@ -143,7 +138,7 @@ if($_POST['wpvp_uploader_hidden'] == 'Y') {
 		<p>
 			<strong><?php _e('Select allowed extensions to upload:');?><br /></strong>
 		<?php	$allowed = get_allowed_mime_types();
-			if(!$ffmpeg_installed){
+			if(!$ffmpeg_ext){
 				$allowed_types = array('flv'=>'video/x-flv','mp4|m4v'=>'video/mp4');
 				echo '<div style="color:red;font-style:italic;">No ffmpeg detected. Only mp4 and flv are available for the upload.</div>';
 			} else {

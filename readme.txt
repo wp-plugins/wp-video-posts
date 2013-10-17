@@ -3,8 +3,8 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.1
-Tested up to: 3.6
-Stable tag: 2.0.2
+Tested up to: 3.6.1
+Stable tag: 3.0
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image.
@@ -89,21 +89,23 @@ A: If you have either CentOS, RedHat or Fedora you can follow these steps:
     sudo /etc/init.d/httpd restart
 
 Q: I have ffmpeg on the server but encoding of the video doesn't work for me
-A: Check what version of ffmpeg is installed. We usually recommend FFmpeg version 0.6.5 (currently, the latest stable) with the following configuration:
+A: 1. Check what version of ffmpeg is installed. We usually recommend FFmpeg version 0.6.5 (currently, the latest stable) with the following configuration:
 
 configuration: --prefix=/usr --enable-gpl --enable-libopencore-amrnb
 --enable-libopencore-amrwb --enable-libx264 --enable-version3 --enable-libfaac
 --enable-nonfree
 
-To check the codecs supported, type the following on the command line:
+2. Check the codecs that are supported with your installation:
 
 ffmpeg -codecs | less
 
-Make sure libfaac and libx264 are among the codecs available for you.
+3. Make sure libfaac (or libfdk_aac) and libx264 are among the codecs available for you.
+
+As of now Debian ffmpeg repository distribution DOES NOT include libx264. You will have to compile ffmpeg yourself from source. There are a lot of good tutorials on web how to install ffmpeg on Debian with libx264 support.
 
 = What pre-requirements do I need to install this plugin? =
 
-You must Install ffmpeg on your server and recompile PHP with ffmpeg-PHP.  
+You must Install ffmpeg on your server.  
 
 = What happen if I dont have ffmpeg in my server? =
 
@@ -126,6 +128,13 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.0 =
+- Added FFMPEG options to remove / change flags passed to ffmpeg during encoding.
+- Implemented a cleaner check for ffmpeg existance on the server.
+- Added an option to select between a flowplayer and a video js player (HTML 5). Defaults to a flowplayer.
+- Added an option to have a "clean" url for video posts (no '/videos/' in the post slug).
+- Added an option for video js player to autoplay and display a splash image or not.
+
 = 2.0.2 =
 - Fixed bug with dimensions for thumb video typo not having a space after the flag therefore the thumb was not generated nor saved.
 - Added flash rewrite rule on plugin activation/deactivation to update teh permalink structure on custom post creation so that you don't have to resave your permalink settings to allow the links to the video posts to work.

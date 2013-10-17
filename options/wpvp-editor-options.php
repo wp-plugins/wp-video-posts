@@ -1,12 +1,4 @@
 <?php 
-$helper = new WPVP_Helper();
-if($helper->wpvp_command_exists_check("ffmpeg")>0) {
-        //FFMPEG is installed and found on the serverr
-        $ffmpeg_installed = true;
-} else {
-        // No FFMPEG installed or found
-        $ffmpeg_installed = false;
-}
 if($_POST['wpvp_editor_hidden'] == 'Y') {
         //Form data sent
         $wpvp_editor_page = $_POST['wpvp_editor_page'];
@@ -29,9 +21,6 @@ if($_POST['wpvp_editor_hidden'] == 'Y') {
 			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
 		</form>
 	<hr>
-<?php   if(!$ffmpeg_installed){
-		echo '<h3 style="color: red;">FFMPEG is not installed on the server, therefore this plugin cannot function properly. The only extensions available for the upload will be mp4 and flv.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
-        } ?>
 	<p><?php _e('In order to display front end editor on a page, please insert the following shortcode into the page:<br /> <strong>[wpvp_edit_video]</strong>');?></p>
 	<form name="wpvp_editor_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 		<input type="hidden" name="wpvp_editor_hidden" value="Y">

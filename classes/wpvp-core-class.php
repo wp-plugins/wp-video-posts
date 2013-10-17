@@ -9,7 +9,15 @@ class WPVP_Encode_Media{
 			'thumb_width'=>640,
 			'thumb_height'=>360,
 			'caption_image'=>5,
-			'ffmpeg_path'=>''
+			'ffmpeg_path'=>'',
+			'wpvp_ffmpeg_ar'=>44100,
+			'wpvp_ffmpeg_b_a'=>384,
+			'wpvp_ffmpeg_b_v'=>384,
+			'wpvp_ffmpeg_ac'=>2,
+			'wpvp_ffmpeg_acodec'=>'libfdk_aac',
+			'wpvp_ffmpeg_vcodec'=>'libx264',
+			'wpvp_ffmpeg_vpre'=>'none',
+			'wpvp_ffmpeg_other_flags'=>0
 		);
 		foreach ($default as $key => $value)
 			$this->options[$key] = key_exists($key,$options) ? $options[$key] : $value;
@@ -21,7 +29,7 @@ class WPVP_Encode_Media{
 	public function wpvp_encode($ID,$front_end_postID=NULL){
 		global $encodeFormat, $shortCode;
 		$helper = new WPVP_Helper();
-                $options = $helper->wpvp_get_full_options();
+        $options = $helper->wpvp_get_full_options();
 		if($helper->wpvp_command_exists_check($this->options['ffmpeg_path']."ffmpeg")>0){
 			$ffmpeg_exists = true;
 		} else {
@@ -42,25 +50,24 @@ class WPVP_Encode_Media{
 			$mime_tmb  = 'image/jpeg';
 		}
 		else if ($encodeFormat=='mp4') {
-                        $extension = '.mp4';
-                        $mime_type = 'video/mp4';
-                        $thumbfmt  = '.jpg';
-                        $mime_tmb  = 'image/jpeg';
+            $extension = '.mp4';
+            $mime_type = 'video/mp4';
+            $thumbfmt  = '.jpg';
+            $mime_tmb  = 'image/jpeg';
 		}
 		//Get the attachment details (we can access the items individually)
-                $postDetails = get_post($ID);
+        $postDetails = get_post($ID);
 		//check if attachment is video
 		if($helper->is_video($postDetails->post_mime_type)=='video') {
-			global $wpdb;
 			//path to upload videos (multisite/BuddyPress compatable)
 		        $NewPath = get_option('upload_path');
 			//path is empty? Lets assign the default one
 			if (!$NewPath)
 				$NewPath = 'wp-content/uploads';
 			//get_post_meta gets ID and the field
-                        $attached_file = get_post_meta($ID,'_wp_attached_file',true);
+            $attached_file = get_post_meta($ID,'_wp_attached_file',true);
 			//get the path to the ORIGINAL file
-                        $dirnameGet = get_home_path() . $NewPath;
+            $dirnameGet = get_home_path() . $NewPath;
 			$originalFileUrl = $dirnameGet . '/' . $attached_file;	
 			$fileDetails = pathinfo($attached_file);
 			$fileExtension = $fileDetails['extension'];
@@ -68,8 +75,8 @@ class WPVP_Encode_Media{
 			if(!in_array($fileExtension,$allowed_ext)&&!$ffmpeg_exists){
 				//do not proceed
 				if($debug_mode){
-                                	$helper->wpvp_dump('No FFMPEG found. Only mp4 and flv extensions are supported. The currently uploaded extension ('.$fileExtension.') is not supported. Please encode the file manually and reupload.');
-                        	}
+                    $helper->wpvp_dump('No FFMPEG found. Only mp4 and flv extensions are supported. The currently uploaded extension ('.$fileExtension.') is not supported. Please encode the file manually and reupload.');
+                }
 				return;
 			} else {
 				//debug_mode is true
@@ -77,45 +84,45 @@ class WPVP_Encode_Media{
 					$helper->wpvp_dump('Initial file details...');
 					$helper->wpvp_dump($fileDetails);
 				}	
-				$GuidPath = get_option('fileupload_url');
-				//if GuidPath is empty, lets lets assign a default
-				if (!$GuidPath)
-					$GuidPath = get_option('upload_url_path');
-				//still empty?
-				if (!$GuidPath)
-					$GuidPath = get_option('siteurl') . '/' . $NewPath;
-				//Normalize the file name and make sure its not a duplicate
+				$guidPath = get_option('fileupload_url');
+				//if guidPath is empty, lets lets assign a default
+				if (!$guidPath)
+					$guidPath = get_option('upload_url_path');
+				if (!$guidPath)
+					$guidPath = get_option('siteurl') . '/' . $NewPath;
+				//normalize the file name and make sure its not a duplicate
 				$fileFound = true;
 				$i = '';
 				while($fileFound){
-					if ($fileDetails['dirname'] == '.')
-		                	        $fname = $fileDetails['filename'].$i;
-	                		else
-        	        		        $fname = $fileDetails['dirname'] . '/' . $fileDetails['filename'].$i;
-	        		        $newFile = $dirnameGet .'/'.$fname.$extension;
-		        	        $guid = $GuidPath . '/' . $fname.$extension;
-                			$newFileTB = $dirnameGet .'/'.$fname.$thumbfmt;
-	        	        	$guidTB = $GuidPath . '/' . $fname.$thumbfmt;
-			                if ($ffmpeg_exists){
-        		                	$file_encoded = 1;
-                			        if(file_exists($newFile))
-        	        		                $i = $i=='' ? 1 : $i+1;
-	                        		else
-	                        	        	$fileFound = false;
-		           		} else{
-                				$file_encoded = 0;
-		        		        $fileFound = false;
-                			}	
+					if ($fileDetails['dirname'] == '.'){
+						$fname = $fileDetails['filename'].$i;
+	                } else {
+        	            $fname = $fileDetails['dirname'] . '/' . $fileDetails['filename'].$i;
+					}
+	        		$newFile = $dirnameGet .'/'.$fname.$extension;
+		        	$guid = $guidPath . '/' . $fname.$extension;
+                	$newFileTB = $dirnameGet .'/'.$fname.$thumbfmt;
+	        	    $guidTB = $guidPath . '/' . $fname.$thumbfmt;
+			        if ($ffmpeg_exists){
+        		      	$file_encoded = 1;
+							if(file_exists($newFile))
+        	        		    $i = $i=='' ? 1 : $i+1;
+	                        else
+	                        	$fileFound = false;
+		           	} else{
+                		$file_encoded = 0;
+		        		$fileFound = false;
+                	}	
 				}//while fileFound ends
 				//debug_mode is true
-                	        if($debug_mode){
-        	                        $helper->wpvp_dump('New files path on the server: video and image ...');
-                        	        $helper->wpvp_dump('video: '.$newFile);
-	                                $helper->wpvp_dump('image: '.$newFileTB);
+                if($debug_mode){
+        	        $helper->wpvp_dump('New files path on the server: video and image ...');
+                    $helper->wpvp_dump('video: '.$newFile);
+	                $helper->wpvp_dump('image: '.$newFileTB);
 					$helper->wpvp_dump('New files url on the server: video and image ...');
-        	                        $helper->wpvp_dump('video: '.$guid);
-                        	        $helper->wpvp_dump('image: '.$guidTB);
-	                        }
+        	        $helper->wpvp_dump('video: '.$guid);
+                    $helper->wpvp_dump('image: '.$guidTB);
+	            }
 				if($file_encoded) {
 					if($debug_mode){
 						$helper->wpvp_dump('FFMPEG found on the server. Encoding initializing...');
@@ -126,16 +133,16 @@ class WPVP_Encode_Media{
 					$this->wpvp_convert_video($originalFileUrl, $newFile, $encodeFormat);
 					//pathinfo on the FULL path to the NEW file
 					$NewfileDetails = pathinfo($newFile);
-                	                $NewTmbDetails  = pathinfo($newFileTB);
+                	$NewTmbDetails  = pathinfo($newFileTB);
 					if($debug_mode){
 						if(!file_exists($newFile)){
 							$helper->wpvp_dump('Video file was not converted. Possible reasons: missing libraries for ffmpeg, permissions on the directory where the file is being written to...');
 						} else {
-							$helper->wpvp_dump('Video was converted: '.$newFileTB);
+							$helper->wpvp_dump('Video was converted: '.$newFile);
 						}
 						if(!file_exists($newFileTB)){
-        	                                        $helper->wpvp_dump('Thumbnail was not created. Possible reasons: missing libraries for ffmpeg, permissions on the directory where the file is being written to...');
-                	                        } else {
+        	                $helper->wpvp_dump('Thumbnail was not created. Possible reasons: missing libraries for ffmpeg, permissions on the directory where the file is being written to...');
+                	    } else {
 							$helper->wpvp_dump('Thumbnail was created: '.$newFileTB);
 						}
 					}
@@ -161,7 +168,7 @@ class WPVP_Encode_Media{
 				}
 				$VideopostID = $postID;
 				$postObj = get_post($VideopostID);
-                	        $currentContent = $postObj->post_content;
+                $currentContent = $postObj->post_content;
 				$newContent = $shortCode.' '.$currentContent;
 				$Videopost = array();
 				$Videopost['post_content']=$newContent;
@@ -186,25 +193,26 @@ class WPVP_Encode_Media{
 						update_post_meta($newThumbnailPost, '_wp_attached_file', $NewTmbDetails['basename']);
 					} else {
 						update_post_meta($ID, '_wp_attached_file', $fileDetails['dirname'] . '/' . $NewfileDetails['basename']);
-                        	       	   	update_post_meta($newThumbnailPost, '_wp_attached_file', $NewTmbDetails['dirname'] . '/' . $NewTmbDetails['basename']);
+                        update_post_meta($newThumbnailPost, '_wp_attached_file', $NewTmbDetails['dirname'] . '/' . $NewTmbDetails['basename']);
 					}
 					$my_post = array();
-        	                        if ($newThumbnailPost) {
-                	                	$my_post['ID'] = $ID;
-                        	                $my_post['post_title'] = $NewfileDetails['basename'];
-	                                	$my_post['guid'] = $guid;
-                	        	        $my_post['post_parent'] = $VideopostID;
-        	        	                $my_post['post_mime_type'] = $mime_type;
-	                        	        wp_update_post( $my_post );
-        	        	       	}
+					if ($newThumbnailPost) {
+                	    $my_post['ID'] = $ID;
+                        $my_post['post_title'] = $NewfileDetails['basename'];
+	                    $my_post['guid'] = $guid;
+                	    $my_post['post_parent'] = $VideopostID;
+        	        	$my_post['post_mime_type'] = $mime_type;
+	                    wp_update_post( $my_post );
+        	        }
 					//delete the original file 
 					unlink($originalFileUrl);
+					//rename($newFile,$originalFileUrl);
 				}
 				if($newThumbnailPost==0){
 					return false;
-	                        } else {
-        	                	return $newThumbnailPost;
-                	      	}
+	            } else {
+        	       	return $newThumbnailPost;
+				}
 			}//ffmpeg and uploaded extension is supported
 		}//if uploaded attachment is a video
 	}
@@ -229,22 +237,48 @@ class WPVP_Encode_Media{
 	*/
 	protected function wpvp_convert_video($source,$target,$format){
 		global $encodeFormat;
+		$helper = new WPVP_Helper();
+		$helper->wpvp_dump($this->options);
 		$width = $this->options['video_width'];
 		$height = $this->options['video_height'];
 		$ffmpeg_path = $this->options['ffmpeg_path'];
 		$dimensions = ($width!=''&&$height!='') ? ' -s '.$width.'x'.$height : '';
-		//typo fix
-		$extra = $dimensions." -ar 44100 -b 384k -ac 2 ";
-		if ($encodeFormat=='mp4') {
-        		$extra .= "-acodec libfaac -vcodec libx264 -vpre normal -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";				
-		}
+		
+		$ffmpeg_ar=$this->options['wpvp_ffmpeg_ar'];
+		$ffmpeg_b_a=$this->options['wpvp_ffmpeg_b_a'];
+		$ffmpeg_b_v=$this->options['wpvp_ffmpeg_b_v'];
+		$ffmpeg_ac=$this->options['wpvp_ffmpeg_ac'];
+		$ffmpeg_acodec=$this->options['wpvp_ffmpeg_acodec'];
+		$ffmpeg_vcodec=$this->options['wpvp_ffmpeg_vcodec'];
+		$ffmpeg_vpre=$this->options['wpvp_ffmpeg_vpre'];
+		$ffmpeg_other_flags=$this->options['wpvp_ffmpeg_other_flags'];
+		
+		$extra = $dimentions." ";
+		if($ffmpeg_ar!='')
+			$extra.=' -ar '.$ffmpeg_ar;
+		if($ffmpeg_b_a!='')
+			$extra.=' -b:a '.$ffmpeg_b_a.'k';
+		if($ffmpeg_b_v!='')
+			$extra.=' -b:v '.$ffmpeg_b_v.'k';
+		if($ffmpeg_ac!='')
+			$extra.=' -ac '.$ffmpeg_ac;
+		if($ffmpeg_acodec!='')
+			$extra.=' -acodec '.$ffmpeg_acodec;
+		if($ffmpeg_vcodec!='')
+			$extra.=' -vcodec '.$ffmpeg_vcodec;
+		if($ffmpeg_vpre)
+			$extra.=' -vpre '.$ffmpeg_vpre;
+		if($ffmpeg_other_flags!=0)
+			$extra.= " -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";
 		$str = $ffmpeg_path."ffmpeg -i ".$source." $extra ".$target;
+		$helper = new WPVP_Helper();
+		$helper->wpvp_dump($str);
 		exec($str);
 		//check for the file. If not created, attempt to execute a simplier command
 		if(!file_exists($target)){
-			exec($ffmpeg_path."ffmpeg -i ".$source.$dimensions." -acodec libfaac -vcodec libx264 ".$target);
+			exec($ffmpeg_path."ffmpeg -i ".$source.$dimensions." ".$ffmpeg_acodec." ".$ffmpeg_vcodec." ".$target);
 		}
-		//in case of MP4Box installed, execute command to move the video data to the front
+		//in case of MP4Box is installed, execute command to move the video data to the front
 		$prepare = "MP4Box -inter 100  ".$target;
 		exec($prepare);
 		return 1;
@@ -255,46 +289,46 @@ class WPVP_Encode_Media{
 	*/
 	public function wpvp_insert_video_into_post($html, $id, $attachment){
 		$helper = new WPVP_Helper();
-	        $width = $this->options['video_width'];
-        	$height = $this->options['video_height'];
+	    $width = $this->options['video_width'];
+		$height = $this->options['video_height'];
 		if($helper->wpvp_command_exists_check($this->options['ffmpeg_path']."ffmpeg")>0){
-                        $ffmpeg_exists = true;
-                } else {
-                        $ffmpeg_exists = false;
-                }
-	        $attachmentID = $id;
-        	$content = $html;
-	        $attachmentObj = get_post($attachmentID);
+            $ffmpeg_exists = true;
+        } else {
+            $ffmpeg_exists = false;
+        }
+	    $attachmentID = $id;
+        $content = $html;
+	    $attachmentObj = get_post($attachmentID);
 		$allowed_ext = array('mp4','flv');
-      	 	if($helper->is_video($attachmentObj->post_mime_type)=='video'){
-	        	$postParentID = $attachmentObj->post_parent;
-                	$postParentObj = get_post($postParentID);
+      	if($helper->is_video($attachmentObj->post_mime_type)=='video'){
+	        $postParentID = $attachmentObj->post_parent;
+            $postParentObj = get_post($postParentID);
 			$attachmentURI = wp_get_attachment_url($attachmentID);
 			$attachmentPathInfo = pathinfo($attachmentURI);
 			$attachExt = $attachmentPathInfo['extension'];
 			//check for allowed extensions without ffmpeg
 			if(!in_array($attachExt,$allowed_ext)&&!$ffmpeg_exists){
-/*        	        if($attachmentID>$postParentID){
-	                //Newly Uploaded Video
-                		$postContent = $postParentObj->post_content;
-        	                $content = $postContent;
-	                } else { */
+				/*if($attachmentID>$postParentID){
+	            //Newly Uploaded Video
+					$postContent = $postParentObj->post_content;
+					$content = $postContent;
+				} else { */
 				$content = 'WPVP_ERROR: FFMPEG is not found on the server. Allowed extensions for the upload are mp4 and flv. Please convert the video and reupload.';
 			} else {
-	                	//Video with attachment from Media Library
-        	                $src = wp_get_attachment_url($attachmentID);
-	                        $attachments = get_posts(array('post_type'=>'attachment','posts_per_page'=>-1,'post_parent'=>$postParentID,'post_mime_type'=>'image/jpeg'));
-                        	if($attachments){
-                			$imgAttachmentID = $attachments[0]->ID;
-        	                        $imgAttachment = wp_get_attachment_url($imgAttachmentID);
-	                       	} else{
-                        		$imgAttachment = plugins_url('/images/', dirname(__FILE__)).'default_image.jpg';
-                       		}
-                	        $content = '[wpvp_flowplayer src='.$src.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
-        //	       	}
+	            //Video with attachment from Media Library
+        	    $src = wp_get_attachment_url($attachmentID);
+	            $attachments = get_posts(array('post_type'=>'attachment','posts_per_page'=>-1,'post_parent'=>$postParentID,'post_mime_type'=>'image/jpeg'));
+                if($attachments){
+					$imgAttachmentID = $attachments[0]->ID;
+        	        $imgAttachment = wp_get_attachment_url($imgAttachmentID);
+	            } else{
+					$imgAttachment = plugins_url('/images/', dirname(__FILE__)).'default_image.jpg';
+                }
+                $content = '[wpvp_flowplayer src='.$src.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
+				//}
 			}
-	        } //Check post mime type = video
-        	return $content;
+	    } //Check post mime type = video
+        return $content;
 	}
 	/**
 	*embed video from YouTube or Vimeo

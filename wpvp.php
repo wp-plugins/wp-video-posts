@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 2.0.2
+Version: 3.0
 Author: Alex Rayan, cmstactics 
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -23,7 +23,7 @@ class WPVPMediaEncoder{
 	/**
 	* @var string WPVPMediaEncoder version
 	*/
-	public $version = '2.0';
+	public $version = '3.0';
 	public static function init(){
 		$class = __CLASS__;
 		new $class;
@@ -33,19 +33,7 @@ class WPVPMediaEncoder{
 	* $uses WPVPMediaEncoder::includes() Include required files
 	*/
 	public function __construct(){
-		$this->includes();
 		$this->setup_actions();
-	}
-	/**
-	*Include required files
-	*@access private
-	*/
-	private function includes(){
-		if(is_admin()){
-			#require( dirname(__FILE__) . '/wpvp-widgets.php');
-			#require( dirname(__FILE__) . '/wpvp-core-class.php');
-			#require( dirname(__FILE__) . '/wpvp-helper-class.php');
-		}
 	}
 	/**
 	*Setup teh default hooks and actions
@@ -78,6 +66,12 @@ class WPVPMediaEncoder{
 		$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter','yes');
 		if($wpvp_main_loop_alter == 'yes'){
 			add_action('pre_get_posts',array(&$this,'wpvp_get_custom_video_posts'),1);
+		}
+		$wpvp_clean_url = get_option('wpvp_clean_url',false);
+		if($wpvp_clean_url){
+			add_action('pre_get_posts',array(&$this,'wpvp_parse_request_query'),10,1);
+			/* Customized part - 9/30/13 */
+			add_filter( 'post_type_link', array(&$this,'wpvp_remove_slug'), 10, 3 );
 		}
 	}
 	/**
@@ -188,13 +182,21 @@ class WPVPMediaEncoder{
 	*@action public
 	*/
 	public function wpvp_enqueue_scripts(){
+		$wpvp_player = get_option('wpvp_player','flowplayer') ? get_option('wpvp_player','flowplayer') : 'flowplayer';
+		if($wpvp_player=='flowplayer'){
 	        wp_enqueue_script('wpvp_flowplayer',plugins_url('/js/', __FILE__).'flowplayer-3.2.10.min.js',array('jquery'),NULL);
-        	wp_enqueue_script( 'wpvp_front_end_js',plugins_url('/js/', __FILE__).'wpvp-front-end.js',array('jquery'),NULL );
-			wp_enqueue_script( 'wpvp_flowplayer_js',plugins_url('/js/',__FILE__).'wpvp_flowplayer.js',array('jquery','wpvp_flowplayer'),NULL);
-			$swf_loc = plugins_url('/js/', __FILE__).'flowplayer-3.2.11.swf';
-			$vars_to_pass = array('swf'=>$swf_loc);
-			wp_localize_script('wpvp_flowplayer_js','object_name',$vars_to_pass);
-        	wp_enqueue_style('wpvp_widget',plugins_url('/css/', __FILE__).'style.css');
+		} else if($wpvp_player=='videojs'){
+			wp_enqueue_script('wpvp_videojs',plugins_url('/inc/video-js/', __FILE__).'video.js',array('jquery'),NULL);
+			wp_enqueue_script('wpvp_videojs_yt',plugins_url('/inc/video-js/', __FILE__).'vjs.youtube.js',array('wpvp_videojs'),NULL);
+			wp_enqueue_style('wpvp_videojs_css',plugins_url('/inc/video-js/', __FILE__).'video-js.css');
+		}
+        wp_enqueue_script( 'wpvp_front_end_js',plugins_url('/js/', __FILE__).'wpvp-front-end.js',array('jquery'),NULL );
+		wp_enqueue_script( 'wpvp_flowplayer_js',plugins_url('/js/',__FILE__).'wpvp_flowplayer.js',array('jquery','wpvp_flowplayer'),NULL);
+		
+		$swf_loc = plugins_url('/js/', __FILE__).'flowplayer-3.2.11.swf';
+		$vars_to_pass = array('swf'=>$swf_loc,'player'=>$wpvp_player,'stylesheet_base'=>get_bloginfo('stylesheet_directory'));
+		wp_localize_script('wpvp_flowplayer_js','object_name',$vars_to_pass);
+        wp_enqueue_style('wpvp_widget',plugins_url('/css/', __FILE__).'style.css');
 	}
 	/**
 	*add support for videos of defined extensions on upload_mimes filter hook
@@ -218,11 +220,9 @@ class WPVPMediaEncoder{
                 	$options = $helper->wpvp_get_full_options();
         	        $newEncode = new WPVP_Encode_Media($options);
 	                $encode_video = $newEncode->wpvp_encode($ID);
-                	return $encode_video;
+                	//return $encode_video;
         	}
-	        else{
-                	return;
-        	}
+	        return;
 	}
 	/**
 	*send email on post status change to publish to the post author on draft_to_publish and pending_to_publish action hook
@@ -358,8 +358,26 @@ class WPVPMediaEncoder{
 	                'height'=>'360',
                 	'splash'=>''
         	),$atts));
-	        $flowplayer_code = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$width.'px;height:'.$height.'px;margin:10px auto"><img width="'.$width.'" height="'.$height.'" src="'.$splash.'" alt="" /></a>';
-        	return $flowplayer_code;
+			$wpvp_player = get_option('wpvp_player','flowplayer') ? get_option('wpvp_player','flowplayer') : 'flowplayer';
+			if($wpvp_player=='flowplayer'){
+				$flowplayer_code = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$width.'px;height:'.$height.'px;margin:10px auto"><img width="'.$width.'" height="'.$height.'" src="'.$splash.'" alt="" /></a>';
+			} else if($wpvp_player=='videojs'){
+				$autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
+				$splash_check = get_option('wpvp_splash',false) ? get_option('wpvp_splash',false) : false;
+				if($autoplay)
+					$ap = 'autoplay ';
+				else
+					$ap = '';
+				if($splash_check)
+					$sp = 'poster="'.$splash.'"';
+				else
+					$sp = '';
+				$flowplayer_code = '<video id="wpvp_videojs" '.$ap.'class="video-js vjs-default-skin" controls preload="none" width="'.$width.'" height="'.$height.'"'.$sp.' data-setup="{}">
+					<source src="'.$src.'" type="video/mp4" />
+				</video>';
+				//$flowplayer_code = '<video id="vid1" src="" class="video-js vjs-default-skin" controls autoplay preload="auto" width="640" height="360" data-setup='{ "techOrder": ["youtube"], "src": "http://www.youtube.com/watch?v=iivaXP6W1e4" }'></video>';
+			}
+	        return $flowplayer_code;
 	}
 	/**
 	* register shortcode to embed videos via video codes
@@ -398,6 +416,30 @@ class WPVPMediaEncoder{
         	$newMedia = new WPVP_Encode_Media();
 	        $editor = $newMedia->wpvp_front_video_editor();
         	return $editor;
+	}
+	/**
+	*Remove slug "videos" from our custom post type
+	*@access public
+	**/
+	public function wpvp_remove_slug($post_link, $post, $leavename){
+		if ( ! in_array( $post->post_type, array( 'videos' ) ) || 'publish' != $post->post_status )
+       			return $post_link;
+    		$post_link = str_replace( '/' . $post->post_type . '/', '/', $post_link ); 
+    		return $post_link;
+	}
+	/**
+	*
+	*
+	**/
+	public function wpvp_parse_request_query($query){
+		// Check for the main query
+    		if ( ! $query->is_main_query() )
+        		return; 
+    		if ( 2 != count( $query->query ) || ! isset( $query->query['page'] ) )
+        		return;
+ 
+    		if ( ! empty( $query->query['name'] ) )
+        		$query->set( 'post_type', array( 'post', 'videos', 'page' ) );
 	}
 }
 endif;
