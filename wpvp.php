@@ -73,60 +73,70 @@ class WPVPMediaEncoder{
 			/* Customized part - 9/30/13 */
 			add_filter( 'post_type_link', array(&$this,'wpvp_remove_slug'), 10, 3 );
 		}
+		add_action( 'admin_enqueue_scripts', array(&$this,'wpvp_admin_scripts_enqueue'));
 	}
 	/**
 	*Register menu options on admin_menu action hook
 	*access public
 	*/
 	public function wpvp_options_page(){
-                add_options_page(
+        add_options_page(
 			'WP Video Posts',
 			'WP Video Posts',
 			'manage_options',
 			'wp-video-posts',
 			array(&$this,'wpvp_options')
 		);
-        }
+    }
 	/**
 	*Register tabs
 	*access public
 	*/
-      	public function wpvp_options(){
-	                        global $pagenow;
-                        	if ( isset ( $_GET['tab'] ) )
-                	                $this->wpvp_define_tabs($_GET['tab']);
-        	                else
-	                                $this->wpvp_define_tabs('general');
-        	                switch($_GET['tab']){
-	                                case 'front-end-uploader':
-                                	        include('options/wpvp-uploader-options.php');
-                        	        break;
-                	                case 'front-end-editor':
-        	                                include('options/wpvp-editor-options.php');
-	                                break;
-                                	case 'shortcodes':
-                        	                include('options/wpvp-shortcodes-options.php');
-                	                break;
-        	                        case 'general':
-	                                default:
-                                        	include('options/wpvp-options.php');
-                                	break;
-               	}
-        }
+    public function wpvp_options(){
+	        global $pagenow;
+            if ( isset ( $_GET['tab'] ) )
+                $this->wpvp_define_tabs($_GET['tab']);
+        	else
+	            $this->wpvp_define_tabs('general');
+        	switch($_GET['tab']){
+	            case 'front-end-uploader':
+                    include('options/wpvp-uploader-options.php');
+                    break;
+                case 'front-end-editor':
+        	        include('options/wpvp-editor-options.php');
+	                break;
+                case 'shortcodes':
+                    include('options/wpvp-shortcodes-options.php');
+                	break;
+        	    case 'general':
+	            default:
+                    include('options/wpvp-options.php');
+                    break;
+            }
+    }
 	/**
 	*Define tabs pages
 	*access private
 	*/
 	private function wpvp_define_tabs($current = 'general'){
-                $tabs = array('general'=>'General','front-end-uploader'=>'Front End Uploader','front-end-editor'=>'Front End Editor','shortcodes'=>'Shortcodes Reminder');
-                echo '<div id="icon-options-general" class="icon32"><br></div>';
-                echo '<h2 class="nav-tab-wrapper">';
-               	foreach( $tabs as $tab => $name ){
-                        $class = ( $tab == $current ) ? ' nav-tab-active' : '';
-                	echo "<a class='nav-tab$class' href='?page=wp-video-posts&tab=$tab'>$name</a>";
-                }
-        	echo '</h2>';
-      	}
+        $tabs = array('general'=>'General','front-end-uploader'=>'Front End Uploader','front-end-editor'=>'Front End Editor','shortcodes'=>'Shortcodes Reminder');
+        echo '<div id="icon-options-general" class="icon32"><br></div>';
+        echo '<h2 class="nav-tab-wrapper">';
+        foreach( $tabs as $tab => $name ){
+            $class = ( $tab == $current ) ? ' nav-tab-active' : '';
+            echo "<a class='nav-tab$class' href='?page=wp-video-posts&tab=$tab'>$name</a>";
+        }
+        echo '</h2>';
+    }
+	/**
+	*Enqueue admin scripts on the plugin's page
+	*@access public
+	*/
+	public function wpvp_admin_scripts_enqueue($hook){
+		if( 'options-general.php' != $hook && $_GET['page']!='wp-video-posts')
+			return;
+		wp_enqueue_style( 'wpvp_admin_style', plugin_dir_url( __FILE__ ) . 'css/admin.css' );
+	}
 	/*
     **register custom post type: videos on init action hook
     *@access static
