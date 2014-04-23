@@ -133,6 +133,10 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.1.1 =
+- Typo fix.
+- Added permission check on test directory within the plugin.
+
 = 3.1 =
 - Multisite bug fix for uploaded media location.
 - Added on demand check for ffmpeg (under options) to enable re-checking.

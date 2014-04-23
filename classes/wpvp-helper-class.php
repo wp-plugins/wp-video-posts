@@ -23,6 +23,10 @@ class WPVP_Helper{
 			$source = plugin_dir_path( __FILE__ ).'test/ffmpeg_test_video.mp4';
 			if(file_exists($source.'.jpg'))
 				unlink($source.'.jpg');
+			$dir = plugin_dir_path( __FILE__ ).'test';
+			if (!is_dir($dir)):
+				chmod($dir, 0777);
+			endif;
 			$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$source.'.jpg';
 			exec($str);
 			if(file_exists($source.'.jpg')){
