@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 3.0
+Version: 3.1
 Author: Alex Rayan, cmstactics 
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -23,7 +23,7 @@ class WPVPMediaEncoder{
 	/**
 	* @var string WPVPMediaEncoder version
 	*/
-	public $version = '3.0';
+	public $version = '3.1';
 	public static function init(){
 		$class = __CLASS__;
 		new $class;
@@ -74,6 +74,7 @@ class WPVPMediaEncoder{
 			add_filter( 'post_type_link', array(&$this,'wpvp_remove_slug'), 10, 3 );
 		}
 		add_action( 'admin_enqueue_scripts', array(&$this,'wpvp_admin_scripts_enqueue'));
+		add_action('wp_ajax_wpvp_check_ffmpeg',array(&$this,'wpvp_check_ffmpeg_callback'));
 	}
 	/**
 	*Register menu options on admin_menu action hook
@@ -136,6 +137,9 @@ class WPVPMediaEncoder{
 		if( 'options-general.php' != $hook && $_GET['page']!='wp-video-posts')
 			return;
 		wp_enqueue_style( 'wpvp_admin_style', plugin_dir_url( __FILE__ ) . 'css/admin.css' );
+		$obj_vars = array('admin_ajax'=>admin_url( 'admin-ajax.php' ));
+		wp_enqueue_script('admin_js',plugin_dir_url(__FILE__).'js/admin.js');
+		wp_localize_script('admin_js','obj_vars',$obj_vars);
 	}
 	/*
     **register custom post type: videos on init action hook
@@ -305,13 +309,15 @@ class WPVPMediaEncoder{
 	*/
 	public function wpvp_insert_shortcode_into_post ($html, $id, $attachment) {
         	$postID = intval($_REQUEST['post_id']);
+			
 	        $postObj = get_post($postID);
+			
         	$postContent = $html;
 	        if($postObj->post_type=='videos'){
-			$helper = new WPVP_Helper();
-        	        $options = $helper->wpvp_get_full_options();
-	                $newVideo = new WPVP_Encode_Media($options);
-                	$postContent = $newVideo->wpvp_insert_video_into_post($postContent, $id, $attachment);
+				$helper = new WPVP_Helper();
+				$options = $helper->wpvp_get_full_options();
+	            $newVideo = new WPVP_Encode_Media($options);
+				$postContent = $newVideo->wpvp_insert_video_into_post($postContent, $id, $attachment);
         	}
         	return $postContent;
 	}
@@ -382,7 +388,7 @@ class WPVPMediaEncoder{
 					$sp = 'poster="'.$splash.'"';
 				else
 					$sp = '';
-				$flowplayer_code = '<video id="wpvp_videojs" '.$ap.'class="video-js vjs-default-skin" controls preload="none" width="'.$width.'" height="'.$height.'"'.$sp.' data-setup="{}">
+				$flowplayer_code = '<video id="wpvp_videojs_'.time().'" '.$ap.'class="video-js vjs-default-skin" controls preload="none" width="'.$width.'" height="'.$height.'"'.$sp.' data-setup="{}">
 					<source src="'.$src.'" type="video/mp4" />
 				</video>';
 				//$flowplayer_code = '<video id="vid1" src="" class="video-js vjs-default-skin" controls autoplay preload="auto" width="640" height="360" data-setup='{ "techOrder": ["youtube"], "src": "http://www.youtube.com/watch?v=iivaXP6W1e4" }'></video>';
@@ -438,8 +444,8 @@ class WPVPMediaEncoder{
     		return $post_link;
 	}
 	/**
-	*
-	*
+	*Parse request query
+	*@access public
 	**/
 	public function wpvp_parse_request_query($query){
 		// Check for the main query
@@ -450,6 +456,19 @@ class WPVPMediaEncoder{
  
     		if ( ! empty( $query->query['name'] ) )
         		$query->set( 'post_type', array( 'post', 'videos', 'page' ) );
+	}
+	/**
+	*Ajax check for ffmpeg and update options
+	*@access public
+	**/
+	public function wpvp_check_ffmpeg_callback(){
+		$helper = new WPVP_Helper();
+		$ffmpeg = $helper->wpvp_command_exists_check($command,true);
+		if($ffmpeg)
+			echo '<span class="true">FOUND</span>';
+		else
+			echo '<span class="false">NOT FOUND</span>';
+		die();
 	}
 }
 endif;

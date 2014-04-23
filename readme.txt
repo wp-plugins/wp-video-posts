@@ -32,7 +32,7 @@ Vimeo:
 = Instructions =
 1. After install, go to the Dashboard.
 
-2. Hover over the Videos menu item and click on Add New Video in the submen for Videos.
+2. Hover over the Videos menu item and click on Add New Video in the submenu for Videos.
 
 3. Add a title to the Video Post.
 
@@ -40,13 +40,15 @@ Vimeo:
 
 5. In the media uploader pop up, add the video you want to attach to this video post.
 
-6. After the video uploads, it will automatically be encoded.  After this process, the video attachment details open where you can modify the title, caption and description.
+6. After the video uploads, it will automatically be encoded if ffmpeg exists on the server. If ffmpeg is not found, allowed video format for uploading is mp4. After this process, the video attachment details open where you can modify the title, caption and description.
 
 7. Once the details have been modified/added if you chose to add those details, click on the Insert into Post button.  It will then add a shortcode that will appear as the following: [wpvp_flowplayer src=http://yoursite.com/wp-content/uploads/2012/06/MyCar.mp4 width=640 height=360 splash=http://yoursite.com/wp-content/uploads/2012/06/MyCar.jpg] 
 
-8. Add any other details in the post content and click the Publish button.
+8. You can use this shortcode with any other posts and pages on your site as well. 
 
-9. That is all.
+9. Add any other details in the post content and click the Publish button.
+
+10. That is all.
 
 == Installation ==
 
@@ -62,6 +64,9 @@ Vimeo:
 Q: I get a "Page not found" error when I view my new video post. Why is this
 happening? 
 A: With any new custom post type being registered with WordPress, the permalinks need to be updated.  The solution is go to the 'Settings'->'Permalinks' and save your current links structure again. 
+
+Q: I installed ffmpeg AFTER I already installed and activated WP Video Posts on my site. How do I refresh the settings? 
+A: You can re-check for ffmpeg by clicking on "Re-Check FFMPEG" button under options page for WP Video Posts. 
 
 Q: I'm running WordPress multisite and I get the message that says something about the file type not being supported.  How do I fix that?
 A: If you are using WordPress multisite, then you need to manually list the type of video formats to allow for upload.  This is done by logging in to the wp-admin, and going to 'My Site' => 'Network Admin', then click on 'Settings' => 'Network Settings'.
@@ -89,7 +94,7 @@ A: If you have either CentOS, RedHat or Fedora you can follow these steps:
     sudo /etc/init.d/httpd restart
 
 Q: I have ffmpeg on the server but encoding of the video doesn't work for me
-A: 1. Check what version of ffmpeg is installed. We usually recommend FFmpeg version 0.6.5 (currently, the latest stable) with the following configuration:
+A: 1. Check what version of ffmpeg is installed. We usually recommend the following configuration:
 
 configuration: --prefix=/usr --enable-gpl --enable-libopencore-amrnb
 --enable-libopencore-amrwb --enable-libx264 --enable-version3 --enable-libfaac
@@ -128,6 +133,13 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.1 =
+- Multisite bug fix for uploaded media location.
+- Added on demand check for ffmpeg (under options) to enable re-checking.
+- Added both video js and flowplayer to widgets video posts display.
+- Defaulted player to video js (html5).
+- General bug fixes.
+
 = 3.0 =
 - Added FFMPEG options to remove / change flags passed to ffmpeg during encoding.
 - Implemented a cleaner check for ffmpeg existance on the server.
@@ -137,13 +149,13 @@ You can convert your video manually by using online resources or programs on you
 
 = 2.0.2 =
 - Fixed bug with dimensions for thumb video typo not having a space after the flag therefore the thumb was not generated nor saved.
-- Added flash rewrite rule on plugin activation/deactivation to update teh permalink structure on custom post creation so that you don't have to resave your permalink settings to allow the links to the video posts to work.
+- Added flash rewrite rule on plugin activation/deactivation to update the permalink structure on custom post creation so that you don't have to resave your permalink settings to allow the links to the video posts to work.
 
 = 2.0.1 =
 - Fixed bug with dimensions for thumb and video due to a type in the variable named being used.
 
 = 2.0 =
-- Major code restucturing (if anyone cares): moved all the functions into classes and cleaned up the code (fewer functions and compressed variable checks)
+- Major code restructuring (if anyone cares): moved all the functions into classes and cleaned up the code (fewer functions and compressed variable checks)
 - Added an option to display video posts in the main Wordpress query (on latest posts page (front page), category, tags, author, and feeds)
 - Insert error message into post description if FFMPEG is not installed.
 - Bug fix: meta data not being recorded on post upload from front end and with posts set to "Publish"

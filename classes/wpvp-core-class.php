@@ -28,6 +28,8 @@ class WPVP_Encode_Media{
 	*/
 	public function wpvp_encode($ID,$front_end_postID=NULL){
 		global $encodeFormat, $shortCode;
+		$videoPostID = 0;
+		//$ID is an attachment post passed from attachment processing
 		$helper = new WPVP_Helper();
         $options = $helper->wpvp_get_full_options();
 		if($helper->wpvp_command_exists_check($this->options['ffmpeg_path']."ffmpeg")>0){
@@ -45,31 +47,24 @@ class WPVP_Encode_Media{
 		// Handle various formats options here...
 		if ($encodeFormat=='flash') {
 			$extension = '.flv'; 
-			$mime_type = 'video/x-flv';
 			$thumbfmt  = '.jpg';
-			$mime_tmb  = 'image/jpeg';
 		}
 		else if ($encodeFormat=='mp4') {
             $extension = '.mp4';
-            $mime_type = 'video/mp4';
             $thumbfmt  = '.jpg';
-            $mime_tmb  = 'image/jpeg';
 		}
+		
 		//Get the attachment details (we can access the items individually)
         $postDetails = get_post($ID);
 		//check if attachment is video
 		if($helper->is_video($postDetails->post_mime_type)=='video') {
-			//path to upload videos (multisite/BuddyPress compatable)
-		        $NewPath = get_option('upload_path');
-			//path is empty? Lets assign the default one
-			if (!$NewPath)
-				$NewPath = 'wp-content/uploads';
-			//get_post_meta gets ID and the field
-            $attached_file = get_post_meta($ID,'_wp_attached_file',true);
+			$upload_dir = wp_upload_dir();
+			$uploadPath = $upload_dir['path'];
+			$uploadUrl = $upload_dir['url'];
+			$originalFilePath = get_attached_file( $ID );
 			//get the path to the ORIGINAL file
-            $dirnameGet = get_home_path() . $NewPath;
-			$originalFileUrl = $dirnameGet . '/' . $attached_file;	
-			$fileDetails = pathinfo($attached_file);
+			$fileDetails = pathinfo($originalFilePath);
+			
 			$fileExtension = $fileDetails['extension'];
 			//check if ffmpeg exists and if video extension is allowed
 			if(!in_array($fileExtension,$allowed_ext)&&!$ffmpeg_exists){
@@ -83,37 +78,28 @@ class WPVP_Encode_Media{
 				if($debug_mode){
 					$helper->wpvp_dump('Initial file details...');
 					$helper->wpvp_dump($fileDetails);
-				}	
-				$guidPath = get_option('fileupload_url');
-				//if guidPath is empty, lets lets assign a default
-				if (!$guidPath)
-					$guidPath = get_option('upload_url_path');
-				if (!$guidPath)
-					$guidPath = get_option('siteurl') . '/' . $NewPath;
+				}
 				//normalize the file name and make sure its not a duplicate
 				$fileFound = true;
 				$i = '';
 				while($fileFound){
-					if ($fileDetails['dirname'] == '.'){
-						$fname = $fileDetails['filename'].$i;
-	                } else {
-        	            $fname = $fileDetails['dirname'] . '/' . $fileDetails['filename'].$i;
-					}
-	        		$newFile = $dirnameGet .'/'.$fname.$extension;
-		        	$guid = $guidPath . '/' . $fname.$extension;
-                	$newFileTB = $dirnameGet .'/'.$fname.$thumbfmt;
-	        	    $guidTB = $guidPath . '/' . $fname.$thumbfmt;
+					$fname = $fileDetails['filename'].$i;
+	        		$newFile = $uploadPath .'/'.$fname.$extension;
+		        	$guid = $uploadUrl . '/' . $fname.$extension;
+                	$newFileTB = $uploadPath .'/'.$fname.$thumbfmt;
+	        	    $guidTB = $uploadUrl . '/' . $fname.$thumbfmt;
 			        if ($ffmpeg_exists){
         		      	$file_encoded = 1;
 							if(file_exists($newFile))
         	        		    $i = $i=='' ? 1 : $i+1;
 	                        else
 	                        	$fileFound = false;
-		           	} else{
+					} else{
                 		$file_encoded = 0;
 		        		$fileFound = false;
                 	}	
 				}//while fileFound ends
+				
 				//debug_mode is true
                 if($debug_mode){
         	        $helper->wpvp_dump('New files path on the server: video and image ...');
@@ -128,12 +114,10 @@ class WPVP_Encode_Media{
 						$helper->wpvp_dump('FFMPEG found on the server. Encoding initializing...');
 					}
 					//ffmpeg to get a thumb from the video
-					$this->wpvp_convert_thumb($originalFileUrl,$newFileTB);
+					$this->wpvp_convert_thumb($originalFilePath,$newFileTB);
 					//ffmpeg to convert video
-					$this->wpvp_convert_video($originalFileUrl, $newFile, $encodeFormat);
+					$this->wpvp_convert_video($originalFilePath, $newFile, $encodeFormat);
 					//pathinfo on the FULL path to the NEW file
-					$NewfileDetails = pathinfo($newFile);
-                	$NewTmbDetails  = pathinfo($newFileTB);
 					if($debug_mode){
 						if(!file_exists($newFile)){
 							$helper->wpvp_dump('Video file was not converted. Possible reasons: missing libraries for ffmpeg, permissions on the directory where the file is being written to...');
@@ -146,72 +130,89 @@ class WPVP_Encode_Media{
 							$helper->wpvp_dump('Thumbnail was created: '.$newFileTB);
 						}
 					}
-					//$guidTB = $newFileTB;
+					//update attachment file
+					$updated = update_attached_file( $ID, $newfile );
 				} else {
 					if($debug_mode){
 						$helper->wpvp_dump('FFMPEG is not found on the server. Possible reasons: not installed, not properly configured, the path is not provided correctly in the plugin\'s options settings...');
 					}
-					$guidTB = plugins_url('/images/', dirname(__FILE__)).'default_image.jpg';
-					$newFile = $originalFileUrl;
-					$NewTmbDetails['basename']='default_image.jpg';
-					$NewfileDetails['basename']='default_image.jpg';
+					$defaultImg = get_option('wpvp_default_img','') ? get_option('wpvp_default_img') : '';
+					if($defaultImg!=''):
+						$newFileTB = $defaultImg;
+						$guidTB = str_replace($uploadPath,$uploadUrl,$newFileTB);
+					else: 
+						$default_img_path = $uploadPath.'/default_image.jpg';
+						copy(plugin_dir_path( dirname(__FILE__)).'images/default_image.jpg',$default_img_path);
+						if(file_exists($default_img_path)):
+							update_option('wpvp_default_img', $default_img_path);
+							$newFileTB = $default_img_path;
+							$guidTB = str_replace($uploadPath,$uploadUrl,$default_img_path);
+						endif;
+					endif;
+					$guid = str_replace($uploadPath,$uploadUrl,$originalFilePath);
+					$newFile = $originalFilePath;
 				} //no ffmpeg - no encoding
+				$newFileDetails = pathinfo($newFile);
+                $newTmbDetails  = pathinfo($newFileTB);
 				//shortcode for the flowplayer
 				$shortCode  = '[wpvp_flowplayer src='.$guid.' width='.$width.' height='.$height.' splash='.$guidTB.']';	
-				//inherit by default from the $_POST
-				$VideopostID = 0;
 				//update the auto created post with our data
 				if(empty($front_end_postID)){
 					$postID = intval($_REQUEST['post_id']);
 				} else {
 					$postID = $front_end_postID;
 				}
-				$VideopostID = $postID;
-				$postObj = get_post($VideopostID);
+				$videoPostID = $postID;
+				$postObj = get_post($videoPostID);
                 $currentContent = $postObj->post_content;
 				$newContent = $shortCode.' '.$currentContent;
-				$Videopost = array();
-				$Videopost['post_content']=$newContent;
-				$Videopost['ID'] = $postID;
+				$videopost = array(
+					'ID' => $postID,
+					'post_content' => $newContent
+				);
 				//update video post with a shortcode inserted in the content
-				$updatedPost = wp_update_post($Videopost);
-				//add a video attachment
-				$my_NEWpost 			= array();
-				$my_NEWpost['post_title']   	= $NewTmbDetails['basename'];
-				$my_NEWpost['post_status']  	= 'inherit';
-				$my_NEWpost['post_type']    	= 'attachment';
-				$my_NEWpost['post_parent']    	= $updatedPost;
-  				$my_NEWpost['guid']         	= $guidTB;
-	  			$my_NEWpost['post_mime_type']  	= $mime_tmb;
-				$newThumbnailPost               = wp_insert_post( $my_NEWpost );
-				//if the file is encoded, add meta data
+				$updatedPost = wp_update_post($videopost);
+				//add a thumbnail attachment and set as featured image
+				$img_filetype = wp_check_filetype($newTmbDetails['basename'], null );
+				
+				$attachment = array(
+					'guid' => $guidTB, 
+					'post_mime_type' => $img_filetype['type'],
+					'post_title' => preg_replace('/\.[^.]+$/', '', $newTmbDetails['basename']),
+					'post_content' => '',
+					'post_status' => 'inherit'
+				);
+				$att_id = wp_insert_attachment( $attachment, $newFileTB, $updatedPost );
+				if($att_id):
+				$attach_data = wp_generate_attachment_metadata( $att_id, $newFileTB );
+					wp_update_attachment_metadata( $att_id,  $attach_data );
+					add_post_meta($updatedPost, '_thumbnail_id', $att_id);
+					update_post_meta($updatedPost, '_wp_attached_file', $newFileTB);
+				endif;
+			
+				//add the video file as attachment for the post 
+				//$video_filetype = wp_check_filetype($newFileDetails['basename']);
+				//hardcode for now
+				$video_filetype['type'] = 'video/mp4';
+				$video_post = array(
+					'post_title' => preg_replace('/\.[^.]+$/', '', $newFileDetails['basename']),
+					'guid' => $guid,
+					'post_parent' => $updatedPost,
+					'post_mime_type' => $video_filetype['type'],
+					'ID' => $ID
+				);
+				wp_update_post( $video_post );
+				update_post_meta($ID, '_wp_attached_file', $newFile);
+			       
 				if($file_encoded){
-					if ($VideopostID && $newThumbnailPost)
-						add_post_meta($VideopostID, '_thumbnail_id', $newThumbnailPost);
-					if ($fileDetails['dirname'] == '.') {
-						update_post_meta($ID, '_wp_attached_file', $NewfileDetails['basename']);
-						update_post_meta($newThumbnailPost, '_wp_attached_file', $NewTmbDetails['basename']);
-					} else {
-						update_post_meta($ID, '_wp_attached_file', $fileDetails['dirname'] . '/' . $NewfileDetails['basename']);
-                        update_post_meta($newThumbnailPost, '_wp_attached_file', $NewTmbDetails['dirname'] . '/' . $NewTmbDetails['basename']);
-					}
-					$my_post = array();
-					if ($newThumbnailPost) {
-                	    $my_post['ID'] = $ID;
-                        $my_post['post_title'] = $NewfileDetails['basename'];
-	                    $my_post['guid'] = $guid;
-                	    $my_post['post_parent'] = $VideopostID;
-        	        	$my_post['post_mime_type'] = $mime_type;
-	                    wp_update_post( $my_post );
-        	        }
 					//delete the original file 
-					unlink($originalFileUrl);
-					//rename($newFile,$originalFileUrl);
+					unlink($originalFilePath);
+					//rename($originalFileUrl,$newFile);
 				}
-				if($newThumbnailPost==0){
+				if($ID){
 					return false;
 	            } else {
-        	       	return $newThumbnailPost;
+        	       	return $ID;
 				}
 			}//ffmpeg and uploaded extension is supported
 		}//if uploaded attachment is a video
@@ -228,7 +229,7 @@ class WPVP_Encode_Media{
 		$dimensions = ($width!=''&&$height!='') ? '-s '.$width.'x'.$height : '';
 		$capture_image = $capture_image ? $capture_image : 5;
 		$extra = '-vframes 1 '.$dimensions.' -ss '.$capture_image.' -f image2';
-		$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target;
+		$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target;	
 		return exec($str);
 	}
 	/**
@@ -299,33 +300,34 @@ class WPVP_Encode_Media{
 	    $attachmentID = $id;
         $content = $html;
 	    $attachmentObj = get_post($attachmentID);
+		         
 		$allowed_ext = array('mp4','flv');
       	if($helper->is_video($attachmentObj->post_mime_type)=='video'){
 	        $postParentID = $attachmentObj->post_parent;
             $postParentObj = get_post($postParentID);
+			
 			$attachmentURI = wp_get_attachment_url($attachmentID);
 			$attachmentPathInfo = pathinfo($attachmentURI);
 			$attachExt = $attachmentPathInfo['extension'];
 			//check for allowed extensions without ffmpeg
 			if(!in_array($attachExt,$allowed_ext)&&!$ffmpeg_exists){
-				/*if($attachmentID>$postParentID){
-	            //Newly Uploaded Video
-					$postContent = $postParentObj->post_content;
-					$content = $postContent;
-				} else { */
 				$content = 'WPVP_ERROR: FFMPEG is not found on the server. Allowed extensions for the upload are mp4 and flv. Please convert the video and reupload.';
 			} else {
 	            //Video with attachment from Media Library
-        	    $src = wp_get_attachment_url($attachmentID);
-	            $attachments = get_posts(array('post_type'=>'attachment','posts_per_page'=>-1,'post_parent'=>$postParentID,'post_mime_type'=>'image/jpeg'));
+	            $attachments = get_posts(array(
+					'post_type'=>'attachment',
+					'posts_per_page'=>-1,
+					'post_parent'=>$postParentID,
+					'post_mime_type'=>'image/jpeg')
+				);
+				
                 if($attachments){
 					$imgAttachmentID = $attachments[0]->ID;
         	        $imgAttachment = wp_get_attachment_url($imgAttachmentID);
 	            } else{
 					$imgAttachment = plugins_url('/images/', dirname(__FILE__)).'default_image.jpg';
                 }
-                $content = '[wpvp_flowplayer src='.$src.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
-				//}
+                $content = '[wpvp_flowplayer src='.$attachmentURI.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
 			}
 	    } //Check post mime type = video
         return $content;
@@ -425,7 +427,26 @@ class WPVP_Encode_Media{
 						$video_data_array = json_decode($video_meta,true);
 						$src = $video_data_array['src'];
 						$splash = $video_data_array['splash'];
-						$video_player = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$width.'px;height:'.$height.'px;"></a>';
+						
+						$wpvp_player = get_option('wpvp_player','videojs') ? get_option('wpvp_player','videojs') : 'videojs';
+						if($wpvp_player=='flowplayer'){
+							$flowplayer_code = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$width.'px;height:'.$height.'px;margin:10px auto"><img width="'.$width.'" height="'.$height.'" src="'.$splash.'" alt="" /></a>';
+						} else if($wpvp_player=='videojs'){
+							$autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
+							$splash_check = get_option('wpvp_splash',false) ? get_option('wpvp_splash',false) : false;
+							if($autoplay)
+								$ap = 'autoplay ';
+							else
+								$ap = '';
+							if($splash_check)
+								$sp = 'poster="'.$splash.'"';
+							else
+								$sp = '';
+							$flowplayer_code = '<video id="wpvp_videojs_'.time().'" '.$ap.'class="video-js vjs-default-skin" controls preload="none" width="'.$width.'" height="'.$height.'"'.$sp.' data-setup="{}">
+								<source src="'.$src.'" type="video/mp4" />
+							</video>';
+						}
+						$video_player = $flowplayer_code;
 					}
 					$video_item .= '<div class="wpvp_video_item'.$class.'" style="'.$style.'">'.$video_player;
 				}

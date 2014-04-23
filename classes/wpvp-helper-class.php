@@ -5,15 +5,24 @@ class WPVP_Helper{
 	*check if ffmpeg extension is installed on the server
 	*@access public
 	*/
-    public function wpvp_command_exists_check($command){
+    public function wpvp_command_exists_check($command,$force=false){
         $command = escapeshellarg($command);
 		$ffmpeg_path = get_option('wpvp_ffmpeg_path','');
-		$wpvp_ffmpeg_exists = get_option('wpvp_ffmpeg_exists',false) ? get_option('wpvp_ffmpeg_exists',false) : false;
-		if($wpvp_ffmpeg_exists){
-			$return = true;
+		$check = true;
+		if(!$force){
+			$wpvp_ffmpeg_exists = get_option('wpvp_ffmpeg_exists',false) ? get_option('wpvp_ffmpeg_exists',false) : false;
+			if($wpvp_ffmpeg_exists){
+				$return = true;
+				$check = false;
+			}
 		} else {
+			$check = true;
+		}
+		if($check):
 			$extra = '-vframes 1 -ss 2 -f image2';
 			$source = plugin_dir_path( __FILE__ ).'test/ffmpeg_test_video.mp4';
+			if(file_exists($source.'.jpg'))
+				unlink($source.'.jpg');
 			$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$source.'.jpg';
 			exec($str);
 			if(file_exists($source.'.jpg')){
@@ -22,7 +31,7 @@ class WPVP_Helper{
 			} else {
 				update_option('wpvp_ffmpeg_exists', false);
 			}
-		}
+		endif;
 		return $return;
     }
 	/**

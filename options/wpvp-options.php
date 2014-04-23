@@ -65,7 +65,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_ffmpeg_path = get_option('wpvp_ffmpeg_path');
 	$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter','yes') ? get_option('wpvp_main_loop_alter','yes') : 'yes';
 	$wpvp_debug_mode = get_option('wpvp_debug_mode');
-	$wpvp_player = get_option('wpvp_player','flowplayer') ? get_option('wpvp_player','flowplayer') : 'flowplayer';
+	$wpvp_player = get_option('wpvp_player','videojs') ? get_option('wpvp_player','videojs') : 'videojs';
 	$wpvp_autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
 	$wpvp_splash = get_option('wpvp_splash',true) ? get_option('wpvp_splash',true) : true;
 	$wpvp_clean_url = get_option('wpvp_clean_url',false) ? get_option('wpvp_clean_url',false) : false;
@@ -117,16 +117,17 @@ if($_POST['wpvp_hidden'] == 'Y') {
 			<li><strong><?php _e('EXEC');?></strong> <span><?php if($exec_c){ echo '<span class="true">ENABLED</span>';} else { echo '<span class="false">DISABLED</span>';}?></span></li>
 			<?php 
 			foreach($exts as $k=>$ext):?>
-				<li><strong><?php echo $k;?></strong> <span><?php if($ext) { echo '<span class="true">FOUND</span>';} else { echo '<span class="false">NOT FOUND</span>';}?></span></li>
+				<li><strong><?php echo $k;?></strong> <span class="<?php echo strtolower($k);?>"><?php if($ext) { echo '<span class="true">FOUND</span>';} else { echo '<span class="false">NOT FOUND</span>';}?></span></li>
 	<?php	endforeach;?>
 		</ul>
+		<input type="button" value="Re-check FFMPEG" class="recheckExt" />
 	</div>
 	<?php 	
 	if(!$helper->wpvp_command_exists_check("ffmpeg")>0){
 		if($ffmpeg_ext){
-			echo '<h3 style="color: red;">FFMPEG test encoding failed. Possible reasons: permissions on the plugins directory, incorrectly configured ffmpeg, etc.<br /></h3>';
+			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG test encoding failed. Possible reasons: permissions on the plugins directory, incorrectly configured ffmpeg, etc.<br /></h3>';
 		} else {
-			echo '<h3 style="color: red;">FFMPEG is not found on the server. The only extensions available for uploading: mp4.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
+			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG is not found on the server. The only extensions available for uploading: mp4.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
 		}
 	} ?>	
 	<form name="wpvp_form" class="wpvp_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">

@@ -106,16 +106,16 @@ class WPVideosForPostsWidget extends WP_Widget
         function update($new_instance, $old_instace){
                 $instance = $old_instance;
                 $instance['title'] = $new_instance['title'];
-		$instance['width'] = $new_instance['width'];
-		$instance['height'] = $new_instance['height'];
-		$instance['cat_checkbox'] = $new_instance['cat_checkbox'];
-		$instance['num_posts'] = $new_instance['num_posts'];
-		$instance['display'] = $new_instance['display'];
-		$instance['display_type'] = $new_instance['display_type'];
-		$instance['post_title']= $new_instance['post_title'];
-		$instance['author']=$new_instance['author'];
-		$instance['excerpt']=$new_instance['excerpt'];
-		$instance['excerpt_length']=$new_instance['excerpt_length'];
+				$instance['width'] = $new_instance['width'];
+				$instance['height'] = $new_instance['height'];
+				$instance['cat_checkbox'] = $new_instance['cat_checkbox'];
+				$instance['num_posts'] = $new_instance['num_posts'];
+				$instance['display'] = $new_instance['display'];
+				$instance['display_type'] = $new_instance['display_type'];
+				$instance['post_title']= $new_instance['post_title'];
+				$instance['author']=$new_instance['author'];
+				$instance['excerpt']=$new_instance['excerpt'];
+				$instance['excerpt_length']=$new_instance['excerpt_length'];
                 return $instance;
         }
         function widget($args, $instance){
