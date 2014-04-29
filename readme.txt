@@ -133,6 +133,10 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.1.2 =
+- Typo fix for the front end uploader.
+- Added disable flag -vpre (video preset) if "none" is passed in the options.
+
 = 3.1.1 =
 - Typo fix.
 - Added permission check on test directory within the plugin.
