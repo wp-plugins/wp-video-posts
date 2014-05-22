@@ -3,7 +3,7 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.2
-Tested up to: 3.6.1
+Tested up to: 3.9.1
 Stable tag: 3.1
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
