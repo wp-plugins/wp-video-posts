@@ -16,7 +16,7 @@ class WPVP_Encode_Media{
 			'wpvp_ffmpeg_ac'=>2,
 			'wpvp_ffmpeg_acodec'=>'libfdk_aac',
 			'wpvp_ffmpeg_vcodec'=>'libx264',
-			'wpvp_ffmpeg_vpre'=>'none',
+			'wpvp_ffmpeg_vpre'=>0,
 			'wpvp_ffmpeg_other_flags'=>0
 		);
 		foreach ($default as $key => $value)
@@ -267,8 +267,10 @@ class WPVP_Encode_Media{
 			$extra.=' -acodec '.$ffmpeg_acodec;
 		if($ffmpeg_vcodec!='')
 			$extra.=' -vcodec '.$ffmpeg_vcodec;
-		if($ffmpeg_vpre!='0'||$ffmpeg_vpre)
-			$extra.=' -vpre '.$ffmpeg_vpre;
+		if($ffmpeg_vpre){
+			if($ffmpeg_vpre!='0'||$ffmpeg_vpre!='none')
+				$extra.=' -vpre '.$ffmpeg_vpre;
+		}
 		if($ffmpeg_other_flags!=0)
 			$extra.= " -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";
 		$str = $ffmpeg_path."ffmpeg -i ".$source." $extra ".$target;
