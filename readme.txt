@@ -133,6 +133,9 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.1.5 =
+- Bug fixing for front end uploader.
+
 = 3.1.4 =
 - Bug fixing. Important to update.
 

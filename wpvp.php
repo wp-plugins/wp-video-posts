@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 3.1.4
+Version: 3.1.5
 Author: Alex Rayan, cmstactics 
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -23,7 +23,7 @@ class WPVPMediaEncoder{
 	/**
 	* @var string WPVPMediaEncoder version
 	*/
-	public $version = '3.1.4';
+	public $version = '3.1.5';
 	public static function init(){
 		$class = __CLASS__;
 		new $class;
@@ -407,7 +407,9 @@ class WPVPMediaEncoder{
                 	'height'=>'315',
         	        'type'=>''
 	        ),$atts));
-        	$newDisplay = new WPVP_Encode_Media();
+			$helper = new WPVP_Helper();
+			$options = $helper->wpvp_get_full_options();
+        	$newDisplay = new WPVP_Encode_Media($options);
 	        $embedCode = $newDisplay->wpvp_video_embed($video_code, $width, $height, $type);
         	return $embedCode;
 	}
@@ -418,7 +420,9 @@ class WPVPMediaEncoder{
 	public function wpvp_register_front_uploader_shortcode($atts){
         	extract(shortcode_atts(array(
 	        ),$atts));
-        	$newMedia = new WPVP_Encode_Media();
+			$helper = new WPVP_Helper();
+			$options = $helper->wpvp_get_full_options();
+        	$newMedia = new WPVP_Encode_Media($options);
 	        $uploader = $newMedia->wpvp_front_video_uploader();
         	return $uploader;
 	}
@@ -429,7 +433,9 @@ class WPVPMediaEncoder{
 	public function wpvp_register_front_editor_shortcode($atts){
         	extract(shortcode_atts(array(
 	        ),$atts));
-        	$newMedia = new WPVP_Encode_Media();
+			$helper = new WPVP_Helper();
+			$options = $helper->wpvp_get_full_options();
+        	$newMedia = new WPVP_Encode_Media($options);
 	        $editor = $newMedia->wpvp_front_video_editor();
         	return $editor;
 	}
