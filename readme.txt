@@ -3,7 +3,7 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.2
-Tested up to: 3.9.1
+Tested up to: 3.9.2
 Stable tag: 3.1
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
@@ -133,6 +133,11 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.1.6 =
+- Added option for MP4Box path specification.
+- Added extension path to extension check.
+- Added encoding commands output for debug purposes.
+
 = 3.1.5 =
 - Bug fixing for front end uploader.
 

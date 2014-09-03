@@ -56,7 +56,13 @@ class WPVP_Helper{
 	*@access public
 	*/
 	public function wpvp_check_extension($ext){
+		$ffmpeg_path = get_option('wpvp_ffmpeg_path','');
+		$mp4box_path = get_option('wpvp_mp4box_path','');
 		if($this->wpvp_check_function('exec')){
+			if($ext=='ffmpeg')
+				$ext = $ffmpeg_path.$ext;
+			else if($ext=='MP4Box')
+				$ext = $mp4box_path.$ext;
 			exec("which ".$ext,$output);
 			return $output;
 		} else {

@@ -13,12 +13,20 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_thumb_height = $_POST['wpvp_thumb_height'];
 	$wpvp_capture_image = $_POST['wpvp_capture_image'];
 	$wpvp_ffmpeg_path = $_POST['wpvp_ffmpeg_path'];
-	$wpvp_main_loop_alter = $_POST['wpvp_main_loop_alter'];
+	$wpvp_main_loop_alter = 0;
+	if(isset($_POST['wpvp_main_loop_alter'])&&$_POST['wpvp_main_loop_alter']=='yes')
+		$wpvp_main_loop_alter = 1;
 	$wpvp_debug_mode = $_POST['wpvp_debug_mode'];
 	$wpvp_player = $_POST['wpvp_player'];
-	$wpvp_autoplay = ($_POST['wpvp_autoplay']=='yes') ? true : false;
-	$wpvp_splash = ($_POST['wpvp_splash']=='yes') ? true : false;
-	$wpvp_clean_url = ($_POST['wpvp_clean_url']=='yes') ? true : false;
+	$wpvp_autoplay= 0;
+	if(isset($_POST['wpvp_autoplay'])&&$_POST['wpvp_autoplay']=='yes')
+		$wpvp_autoplay= 1;
+	$wpvp_splash = 0;
+	if(isset($_POST['wpvp_splash'])&&$_POST['wpvp_splash']=='yes')
+		$wpvp_splash = 1;
+	$wpvp_clean_url = 0;
+	if(isset($_POST['wpvp_clean_url'])&&$_POST['wpvp_clean_url']=='yes')
+		$wpvp_clean_url = 1;
 	/* FFMPEG options */
 	$wpvp_ffmpeg_ar = isset($_POST['wpvp_ffmpeg_ar']) ? $_POST['wpvp_ffmpeg_ar'] : 44100;
 	$wpvp_ffmpeg_b_a = isset($_POST['wpvp_ffmpeg_b_a']) ? $_POST['wpvp_ffmpeg_b_a'] : 384;
@@ -27,8 +35,9 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_ffmpeg_acodec = isset($_POST['wpvp_ffmpeg_acodec']) ? $_POST['wpvp_ffmpeg_acodec'] : 'libfaac';
 	$wpvp_ffmpeg_vcodec = isset($_POST['wpvp_ffmpeg_vcodec']) ? $_POST['wpvp_ffmpeg_vcodec'] : 'libx264';
 	$wpvp_ffmpeg_vpre = isset($_POST['wpvp_ffmpeg_vpre']) ? $_POST['wpvp_ffmpeg_vpre'] : false;
-	$wpvp_other_flags = ($_POST['wpvp_other_flags']=='yes') ? true : false; 
-	
+	$wpvp_other_flags = 0;
+	if(isset($_POST['wpvp_other_flags'])&&$_POST['wpvp_other_flags']=='yes')
+		$wpvp_other_flags = 1;
 	$wpvp_ffmpeg_options = array(
 		'ar'=>$wpvp_ffmpeg_ar,
 		'b_a'=>$wpvp_ffmpeg_b_a,
@@ -63,12 +72,12 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_thumb_height = get_option('wpvp_thumb_height',360) ? get_option('wpvp_thumb_height','360') : 360;
 	$wpvp_capture_image = get_option('wpvp_capture_image',5)? get_option('wpvp_capture_image','5') : 5;
 	$wpvp_ffmpeg_path = get_option('wpvp_ffmpeg_path');
-	$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter','yes') ? get_option('wpvp_main_loop_alter','yes') : 'yes';
+	$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter',1);
 	$wpvp_debug_mode = get_option('wpvp_debug_mode');
 	$wpvp_player = get_option('wpvp_player','videojs') ? get_option('wpvp_player','videojs') : 'videojs';
-	$wpvp_autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
-	$wpvp_splash = get_option('wpvp_splash',true) ? get_option('wpvp_splash',true) : true;
-	$wpvp_clean_url = get_option('wpvp_clean_url',false) ? get_option('wpvp_clean_url',false) : false;
+	$wpvp_autoplay = get_option('wpvp_autoplay',0);
+	$wpvp_splash = get_option('wpvp_splash',1);
+	$wpvp_clean_url = get_option('wpvp_clean_url',0);
 	/* FFMPEG options */
 	$wpvp_ffmpeg_options = array();
 	$wpvp_ffmpeg_options = get_option('wpvp_ffmpeg_options',array()) ? get_option('wpvp_ffmpeg_options') : array();
@@ -78,8 +87,8 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_ffmpeg_ac = isset($wpvp_ffmpeg_options['ac']) ? $wpvp_ffmpeg_options['ac'] : 2;
 	$wpvp_ffmpeg_acodec = isset($wpvp_ffmpeg_options['acodec']) ? $wpvp_ffmpeg_options['acodec'] : 'libfdk_aac';
 	$wpvp_ffmpeg_vcodec = isset($wpvp_ffmpeg_options['vcodec']) ? $wpvp_ffmpeg_options['vcodec'] : 'libx264';
-	$wpvp_ffmpeg_vpre = isset($wpvp_ffmpeg_options['vpre']) ? $wpvp_ffmpeg_options['vpre'] : false;
-	$wpvp_other_flags = isset($wpvp_ffmpeg_options['other_flags']) ? $wpvp_ffmpeg_options['other_flags'] : false;
+	$wpvp_ffmpeg_vpre = isset($wpvp_ffmpeg_options['vpre']) ? $wpvp_ffmpeg_options['vpre'] : 0;
+	$wpvp_other_flags = isset($wpvp_ffmpeg_options['other_flags']) ? $wpvp_ffmpeg_options['other_flags'] : 0;
 }
 ?>
 <div class="wrap">
@@ -168,7 +177,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 		</p>
 		<p>
 			<strong><?php _e('Video posts within the main loop (e.g. latest posts, tags, categories, etc.)');?></strong>
-			<p><input type="checkbox" name="wpvp_main_loop_alter" value="yes"<?php if($wpvp_main_loop_alter=='yes'){ echo ' checked="checked"';}?> /> <?php _e('display the video posts');?></p>
+			<p><input type="checkbox" name="wpvp_main_loop_alter" value="yes"<?php if($wpvp_main_loop_alter){ echo ' checked="checked"';}?> /> <?php _e('display the video posts');?></p>
 		</p>
 		<p>
             <strong><?php _e('"Clean" url for video posts (no \'/videos/\' before post slug)');?></strong>

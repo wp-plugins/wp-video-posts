@@ -222,6 +222,9 @@ class WPVP_Encode_Media{
 	*@access protected
 	*/
 	protected function wpvp_convert_thumb($source,$target){
+		$helper = new WPVP_Helper();
+        $options = $helper->wpvp_get_full_options();
+		$debug_mode = ($options['debug_mode']=='yes') ? true : false;
 		$width = $this->options['thumb_width'];
 		$height = $this->options['thumb_height'];
 		$capture_image = $this->options['capture_image'];
@@ -229,8 +232,15 @@ class WPVP_Encode_Media{
 		$dimensions = ($width!=''&&$height!='') ? '-s '.$width.'x'.$height : '';
 		$capture_image = $capture_image ? $capture_image : 5;
 		$extra = '-vframes 1 '.$dimensions.' -ss '.$capture_image.' -f image2';
-		$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target;	
-		return exec($str);
+		$str = $ffmpeg_path."ffmpeg -y -i ".$source." ". $extra ." ".$target." 2>&1";
+		if($debug_mode)
+			$helper->wpvp_dump('Image conversion command: '.$str);
+		$output = shell_exec($str);
+		if($debug_mode){
+			$helper->wpvp_dump('Image conversion output:');
+			$helper->wpvp_dump($output);
+		}
+		return;
 	}
 	/**
 	*convert video to a specified format (currently, mp4 only)
@@ -239,6 +249,8 @@ class WPVP_Encode_Media{
 	protected function wpvp_convert_video($source,$target,$format){
 		global $encodeFormat;
 		$helper = new WPVP_Helper();
+        $options = $helper->wpvp_get_full_options();
+		$debug_mode = ($options['debug_mode']=='yes') ? true : false;
 		$helper->wpvp_dump($this->options);
 		$width = $this->options['video_width'];
 		$height = $this->options['video_height'];
@@ -252,7 +264,7 @@ class WPVP_Encode_Media{
 		$ffmpeg_acodec=$this->options['wpvp_ffmpeg_acodec'];
 		$ffmpeg_vcodec=$this->options['wpvp_ffmpeg_vcodec'];
 		$ffmpeg_vpre=$this->options['wpvp_ffmpeg_vpre'];
-		$ffmpeg_other_flags=$this->options['wpvp_ffmpeg_other_flags'];
+		$ffmpeg_other_flags=(int)$this->options['wpvp_ffmpeg_other_flags'];
 		
 		$extra = $dimentions." ";
 		if($ffmpeg_ar!='')
@@ -271,20 +283,28 @@ class WPVP_Encode_Media{
 			if($ffmpeg_vpre!='0'||$ffmpeg_vpre!='none')
 				$extra.=' -vpre '.$ffmpeg_vpre;
 		}
-		if($ffmpeg_other_flags!=0)
+		if(!$ffmpeg_other_flags)
 			$extra.= " -refs 1 -coder 1 -level 31 -threads 8 -partitions parti4x4+parti8x8+partp4x4+partp8x8+partb8x8 -flags +mv4 -trellis 1 -cmp 256 -me_range 16 -sc_threshold 40 -i_qfactor 0.71 -bf 0 -g 250";
-		$str = $ffmpeg_path."ffmpeg -i ".$source." $extra ".$target;
-		$helper = new WPVP_Helper();
-		$helper->wpvp_dump($str);
-		exec($str);
-		//check for the file. If not created, attempt to execute a simplier command
+		$str = $ffmpeg_path."ffmpeg -i ".$source." $extra ".$target." 2>&1";
+		if($debug_mode)
+			$helper->wpvp_dump('Video conversion command: '.$str);
+		$output = shell_exec($str);
+		if($debug_mode){
+			$helper->wpvp_dump('Video conversion output:');
+			$helper->wpvp_dump($output);
+		}
+		//check for the file. If not created, attempt to execute a simpler command
 		if(!file_exists($target)){
-			exec($ffmpeg_path."ffmpeg -i ".$source.$dimensions." ".$ffmpeg_acodec." ".$ffmpeg_vcodec." ".$target);
+			$output = shell_exec($ffmpeg_path."ffmpeg -i ".$source.$dimensions." ".$ffmpeg_acodec." ".$ffmpeg_vcodec." ".$target." 2>&1");
+			if($debug_mode)
+				$helper->wpvp_dump($output);
 		}
 		//in case of MP4Box is installed, execute command to move the video data to the front
-		$prepare = "MP4Box -inter 100  ".$target;
-		exec($prepare);
-		return 1;
+		$prepare = "MP4Box -inter 100  ".$target." 2>&1";
+		$output = shell_exec($prepare);
+		if($debug_mode)
+			$helper->wpvp_dump($output);
+		return;
 	}
 	/**
 	*insert short code into the video post
