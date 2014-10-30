@@ -10,6 +10,7 @@ class WPVP_Encode_Media{
 			'thumb_height'=>360,
 			'caption_image'=>5,
 			'ffmpeg_path'=>'',
+			'mp4box_path'=>'',
 			'wpvp_ffmpeg_ar'=>44100,
 			'wpvp_ffmpeg_b_a'=>384,
 			'wpvp_ffmpeg_b_v'=>384,
@@ -40,6 +41,7 @@ class WPVP_Encode_Media{
 		$width = $options['video_width'];
 		$height = $options['video_height'];
 		$ffmpeg_path = $options['ffmpeg_path'];
+		$mp4box_path = $options['mp4box_path'];
 		$debug_mode = ($options['debug_mode']=='yes') ? true : false;
 		$allowed_ext = array('mp4','flv');
 
@@ -154,8 +156,8 @@ class WPVP_Encode_Media{
 				} //no ffmpeg - no encoding
 				$newFileDetails = pathinfo($newFile);
                 $newTmbDetails  = pathinfo($newFileTB);
-				//shortcode for the flowplayer
-				$shortCode  = '[wpvp_flowplayer src='.$guid.' width='.$width.' height='.$height.' splash='.$guidTB.']';	
+				//shortcode for the player
+				$shortCode  = '[wpvp_player src='.$guid.' width='.$width.' height='.$height.' splash='.$guidTB.']';	
 				//update the auto created post with our data
 				if(empty($front_end_postID)){
 					$postID = intval($_REQUEST['post_id']);
@@ -243,6 +245,7 @@ class WPVP_Encode_Media{
 		$width = $this->options['video_width'];
 		$height = $this->options['video_height'];
 		$ffmpeg_path = $this->options['ffmpeg_path'];
+		$mp4box_path = $this->options['mp4box_path'];
 		$dimensions = ($width!=''&&$height!='') ? ' -s '.$width.'x'.$height : '';
 		
 		$ffmpeg_ar=$this->options['wpvp_ffmpeg_ar'];
@@ -282,7 +285,7 @@ class WPVP_Encode_Media{
 			exec($ffmpeg_path."ffmpeg -i ".$source.$dimensions." ".$ffmpeg_acodec." ".$ffmpeg_vcodec." ".$target);
 		}
 		//in case of MP4Box is installed, execute command to move the video data to the front
-		$prepare = "MP4Box -inter 100  ".$target;
+		$prepare = $mp4box_path."MP4Box -inter 100  ".$target;
 		exec($prepare);
 		return 1;
 	}
@@ -313,7 +316,7 @@ class WPVP_Encode_Media{
 			$attachExt = $attachmentPathInfo['extension'];
 			//check for allowed extensions without ffmpeg
 			if(!in_array($attachExt,$allowed_ext)&&!$ffmpeg_exists){
-				$content = 'WPVP_ERROR: FFMPEG is not found on the server. Allowed extensions for the upload are mp4 and flv. Please convert the video and reupload.';
+				$content = __('WPVP_ERROR: FFMPEG is not found on the server. Allowed extensions for the upload are mp4 and flv. Please convert the video and re-upload.');
 			} else {
 	            //Video with attachment from Media Library
 	            $attachments = get_posts(array(
@@ -329,7 +332,7 @@ class WPVP_Encode_Media{
 	            } else{
 					$imgAttachment = plugins_url('/images/', dirname(__FILE__)).'default_image.jpg';
                 }
-                $content = '[wpvp_flowplayer src='.$attachmentURI.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
+                $content = '[wpvp_player src='.$attachmentURI.' width='.$width.' height='.$height.' splash='.$imgAttachment.']';
 			}
 	    } //Check post mime type = video
         return $content;
@@ -376,9 +379,9 @@ class WPVP_Encode_Media{
 			$category__in = $instance['cat_checkbox'];
 		}
 		$args = array(
-        		'post_type' => 'videos',
-		        'post_status' => 'publish',
-        		'posts_per_page' => $num_posts,
+			'post_type' => 'videos',
+			'post_status' => 'publish',
+			'posts_per_page' => $num_posts,
 			'category__in'=>$category__in
 		);
 		$vid_posts = new WP_Query($args);
@@ -479,304 +482,283 @@ class WPVP_Encode_Media{
 	*/
 	public function wpvp_front_video_uploader(){
 		$helper = new WPVP_Helper(); 
-	        $upload_size_unit = $max_upload_size = $helper->wpvp_max_upload_size();
-        	$error_vid_type = false;
-	        $video_limit =  $helper->wpvp_return_bytes(ini_get( 'upload_max_filesize' ));
-        	if(isset($_POST['wpvp-upload'])){
-                	$default_ext = array('video/mp4','video/x-flv');
-	                $video_types = get_option('wpvp_allowed_extensions',$default_ext) ? get_option('wpvp_allowed_extensions',$default_ext) : $default_ext;
-                	if(in_array($_FILES['async-upload']['type'],$video_types)){
-                        	$video_post = $this->wpvp_insert_init_post($_POST,$_FILES);
-	                        // send email notification to an admin
-        	                $userObj = wp_get_current_user();
-	                        $admin = get_bloginfo('admin_email');
-        	                $subject = get_bloginfo('name').': New Video Submitted for Review';
-                	        $headers = 'MIME-Version: 1.0' . "\r\n";
-                        	$headers.= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
-	                        $message = 'New video uploaded for review on '.get_bloginfo('name').'. Moderate the <a href="'.get_bloginfo('url').'/?post_type=videos&p='.$video_post.'">uploaded video</a>.';
-        	                $send_draft_notice = wp_mail($admin, $subject, $message, $headers);
-                	} else if($_FILES['async-upload']['size']>$video_limit){
-                        	$error_vid_type = true;
-	                        $error_mgs = 'The file exceeds the maximum upload size.';
-        	        }
-                	else {
-                        	$error_vid_type = true;
-	                        $supported_ext = implode(', ',$video_types);
-        	                $error_msg = 'The file is either not a video file or the extension is not supported.<br /> Currently supported extensions are: '.$supported_ext;
-                	}
-        	} // if wpvp-upload is in $_POST	
+		$upload_size_unit = $helper->wpvp_max_upload_size();
+		$error_vid_type = false;
+		$video_limit =  $helper->wpvp_return_bytes($helper->wpvp_max_upload_size(false));
+		if(isset($_POST['wpvp_action'])&&'wpvp_upload'==$_POST['wpvp_action']){
+			if ( !wp_verify_nonce( $_POST['wpvp_file_upload_field'], 'wpvp_file_upload' ) ) {
+				$error_vid_type = true;
+				$error_msg = __('Invalid referrer.');
+			} else {
+				$default_ext = array('video/mp4','video/x-flv');
+				$video_types = get_option('wpvp_allowed_extensions',$default_ext) ? get_option('wpvp_allowed_extensions',$default_ext) : $default_ext;
+				if(in_array($_FILES['async-upload']['type'],$video_types)){
+					$video_post = $this->wpvp_insert_init_post($_POST,$_FILES);
+					// send email notification to an admin
+					$userObj = wp_get_current_user();
+					$admin = get_bloginfo('admin_email');
+					$subject = get_bloginfo('name').': New Video Submitted for Review';
+					$headers = 'MIME-Version: 1.0' . "\r\n";
+					$headers.= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+					$message = 'New video uploaded for review on '.get_bloginfo('name').'. Moderate the <a href="'.get_bloginfo('url').'/?post_type=videos&p='.$video_post.'">uploaded video</a>.';
+					$send_draft_notice = wp_mail($admin, $subject, $message, $headers);
+				} else if($_FILES['async-upload']['size']>$video_limit){
+					$error_vid_type = true;
+					$error_mgs = 'The file exceeds the maximum upload size.';
+				}
+				else {
+					$error_vid_type = true;
+					$supported_ext = implode(', ',$video_types);
+					$error_msg = 'The file is either not a video file or the extension is not supported.<br /> Currently supported extensions are: '.$supported_ext;
+				}
+			}
+		} // if wpvp-upload is in $_POST	
 		$helper = new WPVP_Helper(); 
 		if($helper->wpvp_is_allowed()) { ?>
-                <script type="text/javascript">
-                jQuery(document).ready(function(){
-                        jQuery('form[name=wpvp-upload-video]').submit(function(){
-                                if((!jQuery('#wpvp-upload-video input').val())||(!jQuery('textarea[name=wpvp_desc]').val())){
-                                        if(!jQuery('input[name=async-upload]').val()){
-                                                jQuery('.wpvp_file_error').html('No video is chosen');
-                                        } else {
-                                                jQuery('.wpvp_file_error').html('');
-                                        }
-                                        if(!jQuery('input[name=wpvp_title]').val()){
-                                                jQuery('.wpvp_title_error').html('Title is missing');
-                                        } else{
-                                                jQuery('.wpvp_title_error').html('');
-                                        }
-                                        if(!jQuery('textarea[name=wpvp_desc]').val()){
-                                                jQuery('.wpvp_desc_error').html('Description is missing');
-                                        } else{
-                                                jQuery('.wpvp_desc_error').html('');
-                                        }
-                                        if(window.fileSize>'<?php echo $video_limit;?>'){
-                                                jQuery('.wpvp_file_error').html('Video size exceeds allowed <?php echo ini_get( 'upload_max_filesize' );?>.');
-                                                return false;
-                                        } else{
-                                                jQuery('.wpvp_file_error').html('');
-                                        }
-                                        return false;
-                                } else{
-                                        jQuery('.wpvp_file_error').html();
-                                        jQuery('.wpvp_title_error').html();
-                                        jQuery('.wpvp_desc_error').html();
-                                        wpvp_progressBar();
-                                }
-                        });
-                });
-		</script>
-                <?php if($error_vid_type){ echo '<p style="color:red;font-style:italic;font-size:11px;">'.$error_msg.'</p>';}?>
-                <form id="wpvp-upload-video" enctype="multipart/form-data" name="wpvp-upload-video" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-                <div class="wpvp_block">
-                        <label><?php printf( __( 'Choose Video (Max Size of %s):' ), esc_html($upload_size_unit) ); ?><span>*</span></label>
-                        <!--<input type="file" name="wpvp_file" value="<?php //echo $_FILE['wpvp_file'];?>" />-->
-                        <input type="file" id="async-upload" name="async-upload" />
-                        <div class="wpvp_upload_progress" style="display:none;"><img class="wpvp_progress_gif" src="<?php echo plugins_url('images/upload_progress.gif',dirname(__FILE__));?>" /><?php _e('Please, wait while your video is being uploaded.');?></div>
-                        <div class="wpvp_file_error wpvp_error"></div>
-                </div>
-                <div class="wpvp_block">
-                        <label><?php _e('Title');?><span>*</span></label>
-                        <input type="text" name="wpvp_title" value="<?php echo $_POST['wpvp_title'];?>" />
-                        <div class="wpvp_title_error wpvp_error"></div>
-                </div>
-                <div class="wpvp_block">
-                        <label><?php _e('Description');?><span>*</span></label>
-                        <textarea name="wpvp_desc"><?php echo $_POST['wpvp_desc'];?></textarea>
-                        <div class="wpvp_desc_error wpvp_error"></div>
-                </div>
-                <div class="wpvp_block">
-			<div class="wpvp_cat" style="float:left;width:50%;">
-                                <label><?php _e('Choose category');?></label>
-                                <select name="wpvp_category">
-                        <?php
-                                $wpvp_uploader_cats = get_option('wpvp_uploader_cats','');
-                                if($wpvp_uploader_cats==''){
-                                        $uploader_cats = '';
-                                } else {
-                                        $uploader_cats = implode(", ",$wpvp_uploader_cats);
-                                }
-                                $args = array('hide_empty'=>0,'include'=>$uploader_cats);
-                                $categories = get_categories($args);
-                                foreach($categories as $category){
-                                        $options .= '<option ';
-                                        $options .= ' value="'.$category->term_id.'">';
-                                        $options .= $category->cat_name.'</option>';
-                                }
-                                echo $options;
-                        ?>
-                                </select>
-                        </div>
-                        <?php   $hide_tags = get_option('wpvp_uploader_tags','');
-                                if($hide_tags==''){ ?>
-                        <div class="wpvp_tag" style="float:right;width:50%;text-align:right;">
-                                <label><?php _e('Tags (comma separated)');?></label>
-                                <input type="text" name="wpvp_tags" value="<?php echo $_POST['wpvp_tags'];?>" />
-                        </div>
-                        <?php   } ?>
-                        <?php wp_nonce_field('client-file-upload', 'client-file-upload'); ?>
-                </div>
-                <p class="wpvp_submit_block">
-                        <input type="submit" name="wpvp-upload" value="Upload" />
-                </p>
-                </form>
-                <p class="wpvp_info"><span>*</span> = <?php _e('Required fields');?></p>
-	<?php 	} else { //Display insufficient priveleges message
-                	$denial_message = get_option('wpvp_denial_message');
-                	if(!$denial_message || $denial_message == "")
-                        	echo '<h2>Sorry, you do not have sufficient privileges to use this feature</h2>';
-                	else
-	                        echo '<h2>'.$denial_message.'</h2>';
+			<?php if($error_vid_type){ echo '<p style="color:red;font-style:italic;font-size:11px;">'.$error_msg.'</p>';}?>
+			<form id="wpvp-upload-video" enctype="multipart/form-data" name="wpvp-upload-video" class="wpvp-processing-form" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+				<div class="wpvp_block">
+					<label><?php printf( __( 'Choose Video (Max Size of %s):' ), esc_html($upload_size_unit) ); ?><span>*</span></label>
+					<input type="file" id="async-upload" name="async-upload" class="wpvp_require" value="" />
+					<div class="wpvp_file_error wpvp_error"></div>
+					<div class="wpvp_upload_progress" style="display:none;"><img class="wpvp_progress_gif" src="<?php echo plugins_url('images/upload_progress.gif',dirname(__FILE__));?>" /><?php _e('Please, wait while your video is being uploaded.');?></div>
+				</div>
+				<div class="wpvp_block">
+					<label><?php _e('Title');?><span>*</span></label>
+					<input type="text" name="wpvp_title" class="wpvp_require" value="<?php echo $_POST['wpvp_title'];?>" />
+					<div class="wpvp_title_error wpvp_error"></div>
+				</div>
+				<div class="wpvp_block">
+				<?php $desc_status = (int)get_option('wpvp_uploader_desc',false);?>
+					<label><?php _e('Description');?><?php if(!$desc_status):?><span>*</span><?php endif;?></label>
+					<textarea name="wpvp_desc" <?php if(!$desc_status):?>class="wpvp_require"<?php endif;?>><?php echo $_POST['wpvp_desc'];?></textarea>
+					<div class="wpvp_desc_error wpvp_error"></div>
+				</div>
+				<div class="wpvp_block">
+					<div class="wpvp_cat" style="float:left;width:50%;">
+						<label><?php _e('Choose category');?></label>
+						<select name="wpvp_category">
+				<?php
+						$wpvp_uploader_cats = get_option('wpvp_uploader_cats','');
+						if($wpvp_uploader_cats==''){
+							$uploader_cats = '';
+						} else {
+							$uploader_cats = implode(", ",$wpvp_uploader_cats);
+						}
+						$args = array('hide_empty'=>0,'include'=>$uploader_cats);
+						$categories = get_categories($args);
+						foreach($categories as $category){
+							$options .= '<option ';
+							$options .= ' value="'.$category->term_id.'">';
+							$options .= $category->cat_name.'</option>';
+						}
+						echo $options;
+				?>
+						</select>
+					</div>
+					<?php   
+					$hide_tags = get_option('wpvp_uploader_tags','');
+					if($hide_tags==''){ ?>
+					<div class="wpvp_tag" style="float:right;width:50%;text-align:right;">
+						<label><?php _e('Tags (comma separated)');?></label>
+						<input type="text" name="wpvp_tags" value="<?php echo $_POST['wpvp_tags'];?>" />
+					</div>
+					<?php   
+					} 
+					?>
+					<?php wp_nonce_field('wpvp_file_upload','wpvp_file_upload_field',true,true);?>
+				</div>
+				<input type="hidden" name="wpvp_action" value="wpvp_upload" />
+				<p class="wpvp_submit_block">
+					<input type="submit" class="wpvp-submit" name="wpvp-upload" value="Upload" />
+				</p>
+				<p class="wpvp_info"><span>*</span> = <?php _e('Required fields');?></p>
+			</form>
+<?php 	} else { //Display insufficient privileges message
+			$denial_message = get_option('wpvp_denial_message');
+			if(!$denial_message || $denial_message == "")
+				echo '<h2>'.__('Sorry, you do not have sufficient privileges to use this feature').'</h2>';
+			else
+				echo '<h2>'.$denial_message.'</h2>';
 
-        	}
+        }
+	}
+	/**
+	*Strip a single shortcode
+	*@access public
+	**/
+	public function wpvp_strip_shortcode($code, $content){
+		global $shortcode_tags;
+		$stack = $shortcode_tags;
+		$shortcode_tags = array($code => 1);
+		$content = strip_shortcodes($content);
+		$shortcode_tags = $stack;
+		return $content;
 	}
 	/**
 	*font end video edit processing
 	*@access public
 	*/
 	public function wpvp_front_video_editor(){
-	        if($_REQUEST['video']!=''){
-                	//get current user id and check if the video belongs to that user
-        	        $curr_user = wp_get_current_user();
-	                $user_id = $curr_user->ID;
-	                //get post Object based on post id
-        	        $post_id = $_GET['video'];
-                	$postObj = get_post($post_id);
-	                $post_author = $postObj->post_author;
-        	        if(!current_user_can('administrator')&&$user_id!=$post_author){
-                	        return 'Cheating, huh?!';
-	                } else{
-				$shortcode_part = explode('[wpvp_flowplayer ',$postObj->post_content);
-        	               	$post_content = explode(']',$shortcode_part[1]);
-                	       	$video_shortcode = '[wpvp_flowplayer '.$post_content[0].']';
-                        	//$video_content = $post_content[1];
-				$video_content = strip_shortcodes($postObj->post_content);
-	                        if(isset($_POST['wpvp-update'])){
-        	                        $post_title = $_POST['wpvp_title'];
-                	                $post_desc = $_POST['wpvp_desc'];
-                        	        $post_cat = $_POST['wpvp_category'];
-                                	$tags_list = $_POST['wpvp_tags'];
-	                                $video_post_id = $_GET['video'];
-        	                        // check if we still have post id in $_GET
-                	                if($video_post_id!=''){
-                        	                if($tags_list!=''){
-                                	                $tags = explode(',',strtolower($tags_list));
-                                        	}
-	                                        $post = array(
-        	                                        'ID'=>$video_post_id,
-                	                                'post_title'=>$post_title,
-                        	                        'post_type'=>'videos',
-                                	                'post_content'=>$video_shortcode.' '.$post_desc
-                                        	);
-	                                        $update_post = wp_update_post($post);
-        	                                if($update_post){
-                	                                wp_set_post_categories($update_post,array($post_cat));
-                        	                        if($tags_list!=''){
-                                	                        wp_set_object_terms($update_post,$tags,'post_tag');
-                                        	        } else{
-                                                	        wp_set_object_terms($update_post,'','post_tag');
-	                                                }
-        	                                        $msg = '<span style="color:green;">Video record is successfully updated.</span>';
-                	                        } else{
-                        	                        $msg = '<span style="color:red;">Something went wrong.</span>';
-                                	        }
-                                	} //video post id check
-                        	} // check for form submission
+		if($_REQUEST['video']!=''){
+			//get current user id and check if the video belongs to that user
+			$curr_user = wp_get_current_user();
+			$user_id = $curr_user->ID;
+			//get post Object based on post id
+			$post_id = (int)$_GET['video'];
+			$postObj = get_post($post_id);
+			$post_author = $postObj->post_author;
+			if(!current_user_can('administrator')&&$user_id!=$post_author){
+				return __('Cheating, huh?!');
+			} else {
+				$video_data = get_post_meta($post_id,'wpvp_fp_code',true);
+				$video_shortcode = '';
+				if(!empty($video_data)){
+					$data = json_decode(stripslashes($video_data),true);
+					$src = isset($data['src']) ? $data['src'] : false;
+					$splash = isset($data['splash']) ? $data['splash'] : false;
+					$width = isset($data['width']) ? $data['width'] : false;
+					$height = isset($data['height']) ? $data['height'] : false;
+					if($src)
+						$video_shortcode = '[wpvp_player src="'.$src.'"';
+					if($splash)
+						$video_shortcode .= ' splash="'.$splash.'"';
+					if($width)
+						$video_shortcode.= ' width="'.$width.'"';
+					if($height)
+						$video_shortcode.= ' height="'.$height.'"';
+					if($src)
+						$video_shortcode .= ']';
+				}
+				$video_content = $this->wpvp_strip_shortcode('wpvp_player',$postObj->post_content);
+				$video_content = $this->wpvp_strip_shortcode('wpvp_flowplayer',$video_content);
 				$video_title = $postObj->post_title;
-                        	$post_tags = wp_get_post_tags($post_id);
-	                        if(!empty($post_tags)){
-        	                        $tag_count = count($post_tags);
-                	                $tags_list = array();
-                        	        foreach($post_tags as $key=>$tag){
-                                	        $tags_list[]=$tag->name;
-                                	}
-	                                $tags_list = implode(', ',$tags_list);
-        	                }
-                	        $post_category = wp_get_post_categories($post_id);
-                        	$post_cat = $post_category[0];
-?>
-                        <?php if($msg){ echo $msg;}?>
-                        <form id="wpvp-update-video" enctype="multipart/form-data" name="wpvp-update-video" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
-                                <div class="wpvp_block">
-                                        <?php echo do_shortcode($video_shortcode);?>
-                                </div>
-                                <div class="wpvp_block">
-                                        <label><?php _e('Title');?><span>*</span></label>
-                                        <input type="text" name="wpvp_title" value="<?php if($_POST['wpvp_title']) {echo $_POST['wpvp_title'];} else{ echo $video_title;}?>" />
-                                        <div class="wpvp_title_error wpvp_error"></div>
-                                </div>
-                                <div class="wpvp_block">
-                                        <label><?php _e('Description');?><span>*</span></label>
-                                        <textarea name="wpvp_desc"><?php if($_POST['wpvp_desc']){ echo $_POST['wpvp_desc'];} else{ echo $video_content;};?></textarea>
-                                        <div class="wpvp_desc_error wpvp_error"></div>
-                                </div>
-                                <div class="wpvp_block">
-                                <div class="wpvp_cat" style="float:left;width:50%;">
-                                 <?php
-                                $wpvp_uploader_cats = get_option('wpvp_uploader_cats','');
-                                if($wpvp_uploader_cats==''){
-                                        $uploader_cats = '';
-                                } else {
-                                        $uploader_cats = implode(", ",$wpvp_uploader_cats);
-                                }
-                                ?>
-                                        <label><?php _e('Choose category');?></label>
-                                        <select name="wpvp_category">
-                        <?php
-                                $args = array('hide_empty'=>0,'include'=>$uploader_cats);
-                                $categories = get_categories($args);
-                                foreach($categories as $category){
-                                        if($post_cat==$category->term_id){
-                                                $selected = ' selected="selected"';
-                                        } else { $selected = '';}
-                                        $options .= '<option ';
-                                        $options .= ' value="'.$category->term_id.'"'.$selected.'>';
-                                        $options .= $category->cat_name.'</option>';
-                                }
-                                echo $options;
-                        ?>
-                                        </select>
-                                </div>
-				<?php   $hide_tags = get_option('wpvp_uploader_tags','');
-                                if($hide_tags==''){ ?>
-                                <div class="wpvp_tag" style="float:right;width:50%;text-align:right;">
-                                        <label><?php _e('Tags (comma separated)');?></label>
-                                        <input type="text" name="wpvp_tags" value="<?php if($_POST['wpvp_tags']) {echo $_POST['wpvp_tags'];} else { echo $tags_list; }?>" />
-                                </div>
-                                <?php   } ?>
-                        </div>
-                        <p class="wpvp_submit_block">
-                                <input type="submit" name="wpvp-update" value="Save Changes" />
-                        </p>
-                </form>
-                <p class="wpvp_info"><span>*</span> = <?php _e('Required fields');?></p>
-        	<?php   }
-	?>
-	<?php   } else{
-	                return 'Cheating, huh?!';
-                	exit;
-        	}
+				$post_tags = wp_get_post_tags($post_id);
+				if(!empty($post_tags)){
+					$tag_count = count($post_tags);
+					$tags_list = array();
+					foreach($post_tags as $key=>$tag){
+						$tags_list[]=$tag->name;
+					}
+					$tags_list = implode(', ',$tags_list);
+				}
+				$post_category = wp_get_post_categories($post_id);
+				$post_cat = $post_category[0];
+				$wp_nonce_field = wp_nonce_field('wpvp_video_update','wpvp_video_update_field',true,false);
+				?>
+				<form id="wpvp-update-video" enctype="multipart/form-data" name="wpvp-update-video" class="wpvp-processing-form" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+					<div class="wpvp_block">
+						<?php echo do_shortcode($video_shortcode);?>
+					</div>
+					<div class="wpvp_block">
+						<label><?php _e('Title');?><span>*</span></label>
+						<input type="text" name="wpvp_title" class="wpvp_require" value="<?php if($_POST['wpvp_title']) {echo $_POST['wpvp_title'];} else{ echo $video_title;}?>" />
+						<div class="wpvp_title_error wpvp_error"></div>
+					</div>
+					<div class="wpvp_block">
+					<?php $desc_status = (int)get_option('wpvp_uploader_desc',false);?>
+						<label><?php _e('Description');?><?php if(!$desc_status):?><span>*</span><?php endif;?></label>
+						<textarea name="wpvp_desc" <?php if(!$desc_status):?>class="wpvp_require"<?php endif;?>><?php if($_POST['wpvp_desc']){ echo $_POST['wpvp_desc'];} else{ echo $video_content;};?></textarea>
+						<div class="wpvp_desc_error wpvp_error"></div>
+					</div>
+					<div class="wpvp_block">
+						<div class="wpvp_cat" style="float:left;width:50%;">
+						 <?php
+						$wpvp_uploader_cats = get_option('wpvp_uploader_cats','');
+						if($wpvp_uploader_cats==''){
+							$uploader_cats = '';
+						} else {
+							$uploader_cats = implode(", ",$wpvp_uploader_cats);
+						}
+						?>
+						<label><?php _e('Choose category');?></label>
+						<select name="wpvp_category">
+				<?php
+						$args = array('hide_empty'=>0,'include'=>$uploader_cats);
+						$categories = get_categories($args);
+						foreach($categories as $category){
+							if($post_cat==$category->term_id){
+								$selected = ' selected="selected"';
+							} else { $selected = '';}
+							$options .= '<option ';
+							$options .= ' value="'.$category->term_id.'"'.$selected.'>';
+							$options .= $category->cat_name.'</option>';
+						}
+						echo $options;
+				?>
+								</select>
+						</div>
+					<?php $hide_tags = get_option('wpvp_uploader_tags','');?>
+						<?php if($hide_tags==''):?>
+						<div class="wpvp_tag" style="float:right;width:50%;text-align:right;">
+							<label><?php _e('Tags (comma separated)');?></label>
+							<input type="text" name="wpvp_tags" value="<?php if($_POST['wpvp_tags']) {echo $_POST['wpvp_tags'];} else { echo $tags_list; }?>" />
+						</div>
+						<?php endif;?>
+					</div>
+					<input type="hidden" name="wpvp_video_id" value="<?php echo $post_id;?>" />
+					<p class="wpvp_submit_block">
+						<input type="submit" class="wpvp-submit" name="wpvp-update" value="<?php _e('Save Changes');?>" />
+					</p>
+					<?php echo $wp_nonce_field;?>
+					<div class="wpvp_msg"></div>
+					<p class="wpvp_info"><span>*</span> = <?php _e('Required fields');?></p>
+				</form>
+	<?php	} ?>
+<?php   } else{
+			return __('Cheating, huh?!');
+			exit;
+		}
 	}	
 	/**
 	*insert a new video post from the front end uploader
 	*@access protected
 	*/
 	protected function wpvp_insert_init_post($data,$file){
+		global $current_user;
+		get_currentuserinfo();
+		$user_id = $current_user->ID;
+		$wpvp_allow_guest = get_option('wpvp_allow_guest','no') ? get_option('wpvp_allow_guest','no') : 'no';
+		if($wpvp_allow_guest=='yes')
+			$user_id = (int)get_option('wpvp_guest_userid');
 		$helper = new WPVP_Helper();
-        	if($data['wpvp_category']=='0'){
-                	$data['wpvp_category']='1';
-        	}
-        	$wpvp_post_status = get_option('wpvp_default_post_status','pending');
-        	$post = array(
-	                'comment_status' => 'open',
-        	        'post_author' => $logged_in_user,
-                	'post_category' => array($data['wpvp_category']),
-	                'post_content' => $data['wpvp_desc'],
-        	        'post_title' => $data['wpvp_title'],
-                	'post_type' => 'videos',
-	                'post_status' => $wpvp_post_status,
-        	        'tags_input' => $data['wpvp_tags']
-        	);
-                //'post_status' => 'pending',
-        	$postID = wp_insert_post($post);
-        	if ( !empty( $file ) ) {
-        	        require_once(ABSPATH . 'wp-admin/includes/admin.php');
-	                $upload_overrides = array( 'test_form' => FALSE );
-                	$id = media_handle_upload('async-upload', 0,$upload_overrides); //post id of Client Files page
-        	        unset($file);
-	                if ( is_wp_error($id) ) {
-                        	$errors['upload_error'] = $id;
-                        	$id = false;
-                	}
-                	if ($errors) {
-                        	return $errors;
-                	} else {
-                        	$encodedVideoPost = $this->wpvp_encode($id,$postID);
-                        	if(!$encodedVideoPost){
-                                	$msg = _e('There was an error creating a video post.');
-                        	} else{
-                	                $msg = _e('Successfully uploaded. You will be redirected in 5 seconds.');
-        	                        echo '<script type="text/javascript"> jQuery(window).load(function(){ jQuery("#wpvp-upload-video").css("display","none"); setTimeout(function(){ window.location.href="'.get_permalink($postID).'"},5000);}); </script> '._e('If you are not redirected in 5 seconds, go to ').'<a href="'.get_permalink($postID).'">uploaded video</a>.';
-	                        }
-                        	return $postID;
-                	}
-        	}
+		if($data['wpvp_category']=='0'){
+			$data['wpvp_category']='1';
+		}
+		$wpvp_post_status = get_option('wpvp_default_post_status','pending');
+		$post = array(
+			'comment_status' => 'open',
+			'post_author' => $user_id,
+			'post_category' => array($data['wpvp_category']),
+			'post_content' => $data['wpvp_desc'],
+			'post_title' => $data['wpvp_title'],
+			'post_type' => 'videos',
+			'post_status' => $wpvp_post_status,
+			'tags_input' => $data['wpvp_tags']
+		);
+		$postID = wp_insert_post($post);
+		if ( !empty( $file ) ) {
+			require_once(ABSPATH . 'wp-admin/includes/admin.php');
+			$upload_overrides = array( 'test_form' => FALSE );
+			$id = media_handle_upload('async-upload', 0,$upload_overrides); //post id of Client Files page
+			unset($file);
+			if ( is_wp_error($id) ) {
+				$errors['upload_error'] = $id;
+				$id = false;
+			}
+			if ($errors) {
+				return $errors;
+			} else {
+				$encodedVideoPost = $this->wpvp_encode($id,$postID);
+				if(!$encodedVideoPost){
+					$msg = _e('There was an error creating a video post.');
+				} else{
+					$msg = _e('Successfully uploaded. You will be redirected in 5 seconds.');
+					echo '<script type="text/javascript"> jQuery(window).load(function(){ jQuery("#wpvp-upload-video").css("display","none"); setTimeout(function(){ window.location.href="'.get_permalink($postID).'"},5000);}); </script> '._e('If you are not redirected in 5 seconds, go to ').'<a href="'.get_permalink($postID).'">uploaded video</a>.';
+				}
+				return $postID;
+			}
+		}
 	}	
 }
 ?>

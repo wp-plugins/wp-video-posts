@@ -1,4 +1,4 @@
-admin_ajax_url= obj_vars.admin_ajax;
+admin_ajax_url= wpvp_vars.admin_ajax;
 jQuery(window).load(function(){
 	jQuery('.recheckExt').click(function(){
 		var data = {

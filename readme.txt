@@ -3,8 +3,8 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.2
-Tested up to: 3.9.2
-Stable tag: 3.1
+Tested up to: 4.0
+Stable tag: 3.2
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image.
@@ -68,6 +68,10 @@ A: With any new custom post type being registered with WordPress, the permalinks
 Q: I installed ffmpeg AFTER I already installed and activated WP Video Posts on my site. How do I refresh the settings? 
 A: You can re-check for ffmpeg by clicking on "Re-Check FFMPEG" button under options page for WP Video Posts. 
 
+Q: I have ffmpeg installed but I get a message "FFMPEG test encoding failed. Possible reasons: restricted permissions on /test/ directory within the plugin, incorrectly configured ffmpeg, etc.".
+A: Check permissions on /test/ folder under wp-video-posts/classes/. Make sure that apache has permissions to write to this directory. 
+The script will try to create an image file out of ffmpeg_test_video.mp4 test file. It can either fail due to permissions issue, or some flags that we used in ffmpeg are failing in your ffmpeg version.
+
 Q: I'm running WordPress multisite and I get the message that says something about the file type not being supported.  How do I fix that?
 A: If you are using WordPress multisite, then you need to manually list the type of video formats to allow for upload.  This is done by logging in to the wp-admin, and going to 'My Site' => 'Network Admin', then click on 'Settings' => 'Network Settings'.
 Scroll down to the Upload Settings section of the network settings page and add the format in the Upload file types list.
@@ -76,29 +80,14 @@ Q: I'm using the plugin but I do not have FFMPEG installed on my server.  How ca
 A: You can create an image with the dimensions you want and upload it to your server to override our default_image.png located in the /wp-content/plugins/wp-video-posts/images/ directory.
 
 Q: How do I install FFMPEG if I have root access on my server?
-A: If you have either CentOS, RedHat or Fedora you can follow these steps:
-    1. First you would need to install the DAG RPM repositories which contains
-    huge amount of rpm packages:
-
-    For Linux 5 / x86_64 (please, Google commands for other versions of
-    Linux):
-
-    Type the following on the command line:
-    rpm -Uhv http://apt.sw.be/redhat/el5/en/x86_64/rpmforge/RPMS//rpmforge-release-0.3.6-1.el5.rf.x86_64.rpm
-
-    2. Type the following on the command line:
-    yum install ffmpeg ffmpeg-devel
-
-    3. Restart Apache.  An example for CentOS would be:
-    Type the following on the command line:
-    sudo /etc/init.d/httpd restart
+A: If you have either Ubuntu, Debian, or Mint you can follow these steps to compile ffmpeg:
+    - https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu
+Remember you need to compile it with libfdk-aac (for audio) and libx264 (for video) in order for mp4 to work.
 
 Q: I have ffmpeg on the server but encoding of the video doesn't work for me
-A: 1. Check what version of ffmpeg is installed. We usually recommend the following configuration:
-
-configuration: --prefix=/usr --enable-gpl --enable-libopencore-amrnb
---enable-libopencore-amrwb --enable-libx264 --enable-version3 --enable-libfaac
---enable-nonfree
+A: 1. Check what version of ffmpeg is installed and what configuration ffmpeg has. You can do so by running "ffmpeg" via command line.
+Make sure ffmpeg configuration has the following enabled:
+configuration: --enable-libfdk-aac --enable-libx264
 
 2. Check the codecs that are supported with your installation:
 
@@ -126,13 +115,24 @@ You can convert your video manually by using online resources or programs on you
 
 3. WP Video Posts Options page.
 
-4. WP Video Posts Widet Options.
+4. WP Video Posts Widget Options.
 
 5. WP Video Posts Widget in action.
 
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.2 = 
+- Added an option in the settings to make a video description field for the front end uploader optional.
+- Updated video js files to version 4.10.1
+- Changed wpvp_flowplayer shortcode to a more generic wpvp_player. The old version will still work.
+- Rewrote video editing form submission to be ajax driven instead of on page reload.
+- Moved js code for the video upload form processing into an external file.
+- Added an option to choose a default user to attribute video posts to when "Allow guests to upload videos" option is selected.
+- Added mp4 box path to the actual processing line (bug fix).
+- Implemented a better way of updating video post meta data on post update.
+- Fix a bug with settings for video posts in main loop not being processed correctly.
+
 = 3.1.7 =
 - Incorrect update for 3.1.6 fix.
 

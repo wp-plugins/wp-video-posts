@@ -1,7 +1,6 @@
 <?php 
 if($_POST['wpvp_editor_hidden'] == 'Y') {
-        //Form data sent
-        $wpvp_editor_page = $_POST['wpvp_editor_page'];
+    $wpvp_editor_page = $_POST['wpvp_editor_page'];
 	update_option('wpvp_editor_page', $wpvp_editor_page);
 ?>
 <div class="updated"><p><strong><?php _e('Options saved.' ); ?></strong></p></div>
@@ -26,25 +25,25 @@ if($_POST['wpvp_editor_hidden'] == 'Y') {
 		<input type="hidden" name="wpvp_editor_hidden" value="Y">
 		<p><?php _e('Please choose the page you created and inserted the shortcode into:');?></p>
 		<p>
-                        <strong><?php _e("Front End Editor Page: " ); ?></strong>
+            <strong><?php _e("Front End Editor Page: " ); ?></strong>
 			<select name="wpvp_editor_page">
-				 <?php
-                                $args = array();
-                                $pages = get_pages($args);
-                                foreach($pages as $page){
-                                        if($wpvp_editor_page==$page->ID){
-                                                $selected = ' selected="selected"';
-                                        } else { $selected = '';}
-                                        $options .= '<option ';
-                                        $options .= ' value="'.$page->ID.'"'.$selected.'>';
-                                        $options .= $page->post_title.'</option>';
-                                }
-                                echo $options;
-                        	?>
+			<?php
+				$args = array();
+				$pages = get_pages($args);
+				foreach($pages as $page){
+					if($wpvp_editor_page==$page->ID){
+						$selected = ' selected="selected"';
+					} else { $selected = '';}
+					$options .= '<option ';
+					$options .= ' value="'.$page->ID.'"'.$selected.'>';
+					$options .= $page->post_title.'</option>';
+				}
+				echo $options;
+			?>
 			</select>
 		</p>
 		<p class="submit">
-        	        <input type="submit" name="Submit" value="<?php _e('Update Options' ) ?>" />
-	        </p>
-        </form>
+        	<input type="submit" name="Submit" value="<?php _e('Update Options' ) ?>" />
+	    </p>
+    </form>
 </div>

@@ -1,9 +1,8 @@
 <?php 
 if($_POST['wpvp_hidden'] == 'Y') {
-        //Form data sent
-        $wpvp_width = $_POST['wpvp_video_width'];
+    $wpvp_width = $_POST['wpvp_video_width'];
 	$wpvp_height = $_POST['wpvp_video_height'];
-        $wpvp_thumb_width = $_POST['wpvp_thumb_width'];
+    $wpvp_thumb_width = $_POST['wpvp_thumb_width'];
 	$wpvp_thumb_height = $_POST['wpvp_thumb_height'];
 	$wpvp_capture_image = $_POST['wpvp_capture_image'];
 	update_option('wpvp_video_width', $wpvp_width);
@@ -33,6 +32,10 @@ if($_POST['wpvp_hidden'] == 'Y') {
 			<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
 		</form>
 	<hr>
+	<div style="font-weight: bold; font-size: 14px;"><?php _e('Video Player Shortcode');?></div>
+	[wpvp_player src="" splash="" width="" height=""]<br /><br />
+	<em><?php _e('Shortcode [wpvp_flowplayer] is deprecated');?></em>
+	<hr />
 	<div style="font-weight: bold; font-size: 14px;"><?php _e('Youtube and Vimeo Embed Instructions');?></div>
 	<?php _e('WP Video Posts allows the embed of Youtube and Vimeo videos with the use of the following shortcodes:');?>
 	<br /><br />

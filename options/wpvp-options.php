@@ -14,8 +14,8 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_capture_image = $_POST['wpvp_capture_image'];
 	$wpvp_ffmpeg_path = $_POST['wpvp_ffmpeg_path'];
 	$wpvp_mp4box_path = $_POST['wpvp_mp4box_path'];
-	$wpvp_main_loop_alter = $_POST['wpvp_main_loop_alter'];
-	$wpvp_debug_mode = $_POST['wpvp_debug_mode'];
+	$wpvp_main_loop_alter = ($_POST['wpvp_main_loop_alter']=='yes') ? true : false;
+	$wpvp_debug_mode = ($_POST['wpvp_debug_mode']=='yes') ? true : false;
 	$wpvp_player = $_POST['wpvp_player'];
 	$wpvp_autoplay = ($_POST['wpvp_autoplay']=='yes') ? true : false;
 	$wpvp_splash = ($_POST['wpvp_splash']=='yes') ? true : false;
@@ -58,7 +58,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 ?>
 <div class="updated"><p><strong><?php _e('Options saved.' ); ?></strong></p></div>
 <?php
-} else{
+} else {
 	$wpvp_width = get_option('wpvp_video_width',640) ? get_option('wpvp_video_width',640) : 640;
 	$wpvp_height = get_option('wpvp_video_height',360) ? get_option('wpvp_video_height',360) : 360;
 	$wpvp_thumb_width = get_option('wpvp_thumb_width',640) ? get_option('wpvp_thumb_width',640) : 640;
@@ -66,8 +66,8 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_capture_image = get_option('wpvp_capture_image',5)? get_option('wpvp_capture_image','5') : 5;
 	$wpvp_ffmpeg_path = get_option('wpvp_ffmpeg_path');
 	$wpvp_mp4box_path = get_option('wpvp_mp4box_path');
-	$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter','yes') ? get_option('wpvp_main_loop_alter','yes') : 'yes';
-	$wpvp_debug_mode = get_option('wpvp_debug_mode');
+	$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter','yes') ? true : false;
+	$wpvp_debug_mode = get_option('wpvp_debug_mode') ? 1 : 0;
 	$wpvp_player = get_option('wpvp_player','videojs') ? get_option('wpvp_player','videojs') : 'videojs';
 	$wpvp_autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
 	$wpvp_splash = get_option('wpvp_splash',true) ? get_option('wpvp_splash',true) : true;
@@ -128,7 +128,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	<?php 	
 	if(!$helper->wpvp_command_exists_check("ffmpeg")>0){
 		if($ffmpeg_ext){
-			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG test encoding failed. Possible reasons: permissions on the plugins directory, incorrectly configured ffmpeg, etc.<br /></h3>';
+			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG test encoding failed. Possible reasons: restricted permissions on /test/ directory within the plugin, incorrectly configured ffmpeg, etc.</h3>';
 		} else {
 			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG is not found on the server. The only extensions available for uploading: mp4.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
 		}
@@ -165,21 +165,21 @@ if($_POST['wpvp_hidden'] == 'Y') {
         </p>
 		<p>
             <strong><?php _e('Use the following player:');?>&nbsp;&nbsp;&nbsp;</strong>
-            <input type="radio" value="flowplayer" name="wpvp_player" <?php if($wpvp_player == "flowplayer") { echo "checked=\"checked\""; } ?>> Flowplayer (Flash)&nbsp;&nbsp;&nbsp;
-            <input type="radio" value="videojs" name="wpvp_player" <?php if($wpvp_player == "videojs") { echo "checked=\"checked\""; } ?>> Video JS (HTML5)
+			<input type="radio" value="videojs" name="wpvp_player" <?php if($wpvp_player == "videojs") { echo 'checked="checked"'; } ?>> Video JS (HTML5)&nbsp;&nbsp;
+            <input type="radio" value="flowplayer" name="wpvp_player" <?php if($wpvp_player == "flowplayer") { echo 'checked="checked"'; } ?>> Flowplayer (Flash) <em>[<?php _e('not updated');?>]</em>
         </p>
 		<p>
 			<strong><?php _e('Video JS Controls');?></strong>
-			<p><input type="checkbox" name="wpvp_autoplay" value="yes"<?php if($wpvp_autoplay){ echo 'checked="checked"';}?> /> <?php _e('Autoplay video');?></p>
-			<p><input type="checkbox" name="wpvp_splash" value="yes"<?php if($wpvp_splash){ echo 'checked="checked"';}?> /> <?php _e('Display splash image');?></p>
+			<p><input type="checkbox" name="wpvp_autoplay" value="yes" <?php checked($wpvp_autoplay,1);?> /> <?php _e('Autoplay video');?></p>
+			<p><input type="checkbox" name="wpvp_splash" value="yes" <?php checked($wpvp_splash,1);?> /> <?php _e('Display splash image');?></p>
 		</p>
 		<p>
 			<strong><?php _e('Video posts within the main loop (e.g. latest posts, tags, categories, etc.)');?></strong>
-			<p><input type="checkbox" name="wpvp_main_loop_alter" value="yes"<?php if($wpvp_main_loop_alter=='yes'){ echo ' checked="checked"';}?> /> <?php _e('display the video posts');?></p>
+			<p><input type="checkbox" name="wpvp_main_loop_alter" value="yes" <?php checked($wpvp_main_loop_alter,1);?> /> <?php _e('display the video posts');?></p>
 		</p>
 		<p>
             <strong><?php _e('"Clean" url for video posts (no \'/videos/\' before post slug)');?></strong>
-            <p><input type="checkbox" name="wpvp_clean_url" value="yes"<?php if($wpvp_clean_url==1){ echo ' checked="checked"';}?> /> <?php _e('use "clean" url');?></p>
+            <p><input type="checkbox" name="wpvp_clean_url" value="yes" <?php checked($wpvp_clean_url,1);?> /> <?php _e('use "clean" url');?></p>
         </p>
 		<p>
 			<strong><?php _e("Allowed video extensions for uploading");?></strong>
@@ -239,20 +239,20 @@ if($_POST['wpvp_hidden'] == 'Y') {
 				</li>
 				<li>
 					<strong><?php _e('Disable other passed flags <span>(useful when debugging ffmpeg)</span>');?></strong><br />
-					<div class="wpvp-new-line"><input type="checkbox" name="wpvp_other_flags" value="yes"<?php if($wpvp_other_flags==1){ echo ' checked="checked"';}?> /> <?php _e('disable other passed flags <span>(-refs, -coder, -level, -threads, -partitions, -flags, -trellis, -cmp, -me_range, -sc_threshold, -i_qfactor, -bf, -g)</span>');?></div>
+					<div class="wpvp-new-line"><input type="checkbox" name="wpvp_other_flags" value="yes" <?php checked($wpvp_other_flags,1);?> /> <?php _e('disable other passed flags <span>(-refs, -coder, -level, -threads, -partitions, -flags, -trellis, -cmp, -me_range, -sc_threshold, -i_qfactor, -bf, -g)</span>');?></div>
 				</li>
 			</ul>
 		</p>
 		<?php endif;?>
 		<p>
-                        <strong><span style="color:red;"><?php _e('Debug Mode:');?></span></strong>
-                        <p><input type="checkbox" name="wpvp_debug_mode" value="yes"<?php if($wpvp_debug_mode=='yes'){ echo ' checked="checked"';}?>/> <?php _e('enable <span>(the debugging results will be written to /tmp/debug.ffmpeg.log and when the file exists the contents will be displayed below)</span>');?></p>
-                </p>
+			<strong><span style="color:red;"><?php _e('Debug Mode:');?></span></strong>
+			<p><input type="checkbox" name="wpvp_debug_mode" value="yes" <?php checked($wpvp_debug_mode,1);?>/> <?php _e('enable <span>(the debugging results will be written to /tmp/debug.ffmpeg.log and when the file exists the contents will be displayed below)</span>');?></p>
+		</p>
 		<p class="submit">
-        	        <input type="submit" name="Submit" value="<?php _e('Update Options' ) ?>" />
-	        </p>
+			<input type="submit" name="Submit" value="<?php _e('Update Options' ) ?>" />
+		</p>
     </form>
-	<?php if($wpvp_debug_mode=='yes'&&file_exists('/tmp/debug.ffmpeg.log')){
+	<?php if($wpvp_debug_mode&&file_exists('/tmp/debug.ffmpeg.log')){
 	?>
 	<h3><?php _e('Contents of debug.ffmpeg.log:');?></h3>
 	<div style="height:400px;overflow:scroll;width:700px;background-color: #ffffe0;border: 1px #e6db55 solid;padding: 0 15px;">
