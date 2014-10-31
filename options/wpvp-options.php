@@ -20,6 +20,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_autoplay = ($_POST['wpvp_autoplay']=='yes') ? true : false;
 	$wpvp_splash = ($_POST['wpvp_splash']=='yes') ? true : false;
 	$wpvp_clean_url = ($_POST['wpvp_clean_url']=='yes') ? true : false;
+	$wpvp_encode_format = empty($_POST['wpvp_encode_format']) ? array() : $_POST['wpvp_encode_format'];
 	/* FFMPEG options */
 	$wpvp_ffmpeg_ar = isset($_POST['wpvp_ffmpeg_ar']) ? $_POST['wpvp_ffmpeg_ar'] : 44100;
 	$wpvp_ffmpeg_b_a = isset($_POST['wpvp_ffmpeg_b_a']) ? $_POST['wpvp_ffmpeg_b_a'] : 384;
@@ -55,6 +56,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	update_option('wpvp_autoplay',$wpvp_autoplay);
 	update_option('wpvp_splash',$wpvp_splash);
 	update_option('wpvp_clean_url',$wpvp_clean_url);
+	update_option('wpvp_encode_format',$wpvp_encode_format);
 ?>
 <div class="updated"><p><strong><?php _e('Options saved.' ); ?></strong></p></div>
 <?php
@@ -72,6 +74,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
 	$wpvp_splash = get_option('wpvp_splash',true) ? get_option('wpvp_splash',true) : true;
 	$wpvp_clean_url = get_option('wpvp_clean_url',false) ? get_option('wpvp_clean_url',false) : false;
+	$wpvp_encode_format = get_option('wpvp_encode_format',false) ? get_option('wpvp_encode_format') : array();
 	/* FFMPEG options */
 	$wpvp_ffmpeg_options = array();
 	$wpvp_ffmpeg_options = get_option('wpvp_ffmpeg_options',array()) ? get_option('wpvp_ffmpeg_options') : array();
@@ -196,7 +199,13 @@ if($_POST['wpvp_hidden'] == 'Y') {
 			?>
 			</ul>
 		</p>
-		<?php if($ffmpeg_ext):?>
+		<?php if($ffmpeg_ext):
+		?>
+		<p style="display:none;">
+			<strong><?php _e('Encode to additional formats:');?></strong>
+			<input type="checkbox" name="wpvp_encode_format[]" value="webm" <?php checked(in_array('webm',$wpvp_encode_format),1);?> /> <?php _e('webm');?><br />
+			<input type="checkbox" name="wpvp_encode_format[]" value="ogg" <?php checked(in_array('ogg',$wpvp_encode_format),1);?> /> <?php _e('ogg/ogv');?>
+		</p>
 		<p>
 			<h3><?php _e('Advanced Options for FFMPEG');?></h3>
 			<p><?php _e('Leave an input blank to disable the flag. Modify only if you know what you\'re doing');?></p>

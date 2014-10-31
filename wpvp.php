@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 3.2
+Version: 3.3
 Author: Alex Rayan, cmstactics
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -23,7 +23,7 @@ class WPVPMediaEncoder{
 	/**
 	* @var string WPVPMediaEncoder version
 	*/
-	public $version = '3.2';
+	public $version = '3.3';
 	public static function init(){
 		$class = __CLASS__;
 		new $class;
@@ -80,6 +80,13 @@ class WPVPMediaEncoder{
 		add_action('wp_ajax_wpvp_check_ffmpeg',array(&$this,'wpvp_check_ffmpeg_callback'));
 		add_action('wp_ajax_wpvp_process_update',array(&$this,'wpvp_process_update'));
 		add_action('wp_ajax_nopriv_wpvp_process_update',array(&$this,'wpvp_process_update'));
+		add_action('wp_ajax_wpvp_process_files',array(&$this,'wpvp_process_files'));
+		add_action('wp_ajax_wpvp_process_form',array(&$this,'wpvp_process_form'));
+		$wpvp_allow_guest = (get_option('wpvp_allow_guest','no')=='yes') ? true : false;
+		if($wpvp_allow_guest){
+			add_action('wp_ajax_nopriv_wpvp_process_files',array(&$this,'wpvp_process_files'));
+			add_action('wp_ajax_nopriv_wpvp_process_form',array(&$this,'wpvp_process_form'));
+		}
 	}
 	/**
 	*Register menu options on admin_menu action hook
@@ -215,9 +222,8 @@ class WPVPMediaEncoder{
 			wp_enqueue_style('wpvp_videojs_css',plugins_url('/inc/video-js/', __FILE__).'video-js.min.css');
 		}
         wp_enqueue_script( 'wpvp_front_end_js',plugins_url('/js/', __FILE__).'wpvp-front-end.js',array('jquery'),NULL );
-		$helper = new WPVP_Helper(); 
-		$upload_size = $helper->wpvp_max_upload_size();
-	    $video_limit =  $helper->wpvp_return_bytes($upload_size);
+		$upload_size = WPVP_Helper::wpvp_max_upload_size();
+	    $video_limit =  WPVP_Helper::wpvp_return_bytes($upload_size);
 		$wpvp_vars = array('upload_size'=>$upload_size,'file_upload_limit'=>$video_limit,'wpvp_ajax'=>admin_url( 'admin-ajax.php' ));
 		wp_localize_script('wpvp_front_end_js','wpvp_vars',$wpvp_vars);
         wp_enqueue_style('wpvp_widget',plugins_url('/css/', __FILE__).'style.css');
@@ -569,6 +575,124 @@ class WPVPMediaEncoder{
 			}
 		} else {
 			$response['msg'][] = __('Invalid referrer set.');
+		}
+		echo json_encode($response);
+		die();
+	}
+	/**
+	*Ajax process files upload from the front end
+	*@access public
+	**/
+	public function wpvp_process_files(){
+		require_once( ABSPATH . 'wp-admin/includes/file.php' );
+		$helper = new WPVP_Helper(); 
+		$options = $helper->wpvp_get_full_options();
+		$newMedia = new WPVP_Encode_Media($options);
+		$upload_size_unit = WPVP_Helper::wpvp_max_upload_size();
+		$error = false;
+		$errors = array();
+		$video_limit = WPVP_Helper::wpvp_return_bytes($upload_size_unit);
+		$default_ext = array('video/mp4','video/x-flv');
+		$video_types = get_option('wpvp_allowed_extensions',$default_ext) ? get_option('wpvp_allowed_extensions',$default_ext) : $default_ext;
+		$ext_list = implode(', ',$video_types);
+		$post_id = isset($_POST['postid']) ? (int)$_POST['postid'] : 0;
+		if(!$post_id){
+			echo json_encode(array('status'=>'error','errors'=>array(0=>__('Invalid post id.'))));
+			die();
+		}
+		foreach($_FILES as $file){
+			if(in_array($file['type'],$video_types)){
+				if($file['size']>$video_limit){
+					$error = true;
+					$errors[] = __('The file exceeds the maximum upload size.');
+				} else {
+					//process file
+					$override = array( 'test_form' => FALSE );
+					$uploaded_file = wp_handle_upload($file, $override);
+					if($uploaded_file){
+						$attachment = array(
+							'post_title' => $file['name'],
+							'post_content' => '',
+							'post_type' => 'attachment',
+							'post_parent' => 0,
+							'post_mime_type' => $file['type'],
+							'guid' => $uploaded_file['url']
+						);
+						$id = wp_insert_attachment($attachment,$uploaded_file[ 'file' ]);
+						wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $uploaded_file['file'] ) );
+						$encodedVideoPost = $newMedia->wpvp_encode($id,$post_id);
+						if(!$encodedVideoPost){
+							$errors[] = __('There was an error creating a video post.');
+						} else{
+							$post_url = get_permalink($post_id);
+							$msg= __('Successfully uploaded. You will be redirected in 5 seconds.');
+							$msg.= __('If you are not redirected in 5 seconds, go to ').'<a href="'.$post_url.'">'.__('uploaded video').'</a>.';
+						}
+						$data=array();
+						$data['post_id'] = $post_id;
+						$data['html'] = $msg;
+						$data['url'] = $post_url;
+						$data['status'] = 'success';
+					} else {
+						$error = true;
+						$errors[] = $uploaded_file['error'];
+					}
+					unset($file);
+				}
+			} else {
+				$error = true;
+				$errors[] = __('The file extension is not supported: '.$file['type'].'. Supported extensions are: '.$ext_list.'.');
+			}
+		}
+		if($error){
+			$data = array('status' => 'error', 'errors' => $errors);
+			//delete tmp post if video errored out
+			wp_delete_post( $post_id, true );
+		} else {
+			// send email notification to an admin
+			$admin = get_bloginfo('admin_email');
+			$subject = get_bloginfo('name').': New Video Submitted for Review';
+			$message = __('New video uploaded for review on ').get_bloginfo('name').'. '.__('Moderate the ').'<a href="'.get_bloginfo('url').'/?post_type=videos&p='.$post_id.'">'.__('uploaded video').'</a>.';
+			$send_draft_notice = wp_mail($admin, $subject, $message);
+		}
+		echo json_encode($data);
+		die();
+	}
+	/**
+	*Ajax process form upload
+	*@access public
+	**/
+	public function wpvp_process_form(){
+		global $current_user;
+		get_currentuserinfo();
+		$user_id = $current_user->ID;
+		$wpvp_allow_guest = get_option('wpvp_allow_guest','no') ? get_option('wpvp_allow_guest','no') : 'no';
+		if($wpvp_allow_guest=='yes')
+			$user_id = (int)get_option('wpvp_guest_userid');
+		$data = array();
+		parse_str($_POST['data'],$data);
+		$helper = new WPVP_Helper();
+		$category = (int)$data['wpvp_category'];
+		if ( wp_verify_nonce( $data['wpvp_file_upload_field'], 'wpvp_file_upload' ) ) {
+			$wpvp_post_status = get_option('wpvp_default_post_status','pending');
+			$post = array(
+				'comment_status' => 'open',
+				'post_author' => $user_id,
+				'post_category' => array($category),
+				'post_content' => $data['wpvp_desc'],
+				'post_title' => $data['wpvp_title'],
+				'post_type' => 'videos',
+				'post_status' => $wpvp_post_status,
+				'tags_input' => $data['wpvp_tags']
+			);
+			$post_id = wp_insert_post($post);
+			if(!is_wp_error($post_id)){
+				$response = array('status'=>'success','post_id'=>$post_id);
+			} else {
+				$response = array('status'=>'error','msg'=>$post_id->get_error_message());
+			}
+		} else {
+			$response = array('status'=>'error','msg'=>__('Invalid referrer.'));
 		}
 		echo json_encode($response);
 		die();

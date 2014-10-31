@@ -45,7 +45,6 @@ p.wpvp_info span{
 	color:red;
 }
 .wpvp_upload_progress{
-	font-weight:600;
 	border-color: #999;
 	background-color: #ffffff;
 	-moz-box-shadow: 0 0 3px #999;
@@ -59,7 +58,11 @@ p.wpvp_info span{
 	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0,white),color-stop(100%,#EBEBEB));
 	background-image: -webkit-linear-gradient(top,white 0,#EBEBEB 100%);
 	background-image: linear-gradient(to bottom,white 0,#EBEBEB 100%);
-	height:49px;
+	background-image: url('../images/upload_progress.gif');
+	background-size: auto 100%;
+	background-repeat: no-repeat;
+	text-align: center;
+	font-weight: normal;
 }
 .wpvp_upload_progress img.wpvp_progress_gif{
 	margin-bottom: -18px;

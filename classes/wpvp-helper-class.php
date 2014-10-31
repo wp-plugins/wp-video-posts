@@ -85,6 +85,7 @@ class WPVP_Helper{
 		$mp4box_path = get_option('wpvp_mp4box_path','');
 		$debug_mode = get_option('wpvp_debug_mode');
 		$allowed_extensions = get_option('wpvp_allowed_extensions',$default_ext);
+		$encode_formats = get_option('wpvp_encode_format',false) ? get_option('wpvp_encode_format') : array();
 		$wpvp_ffmpeg_options = array();
 		$wpvp_ffmpeg_options = get_option('wpvp_ffmpeg_options',array()) ? get_option('wpvp_ffmpeg_options') : array();
 		$wpvp_ffmpeg_ar = isset($wpvp_ffmpeg_options['ar']) ? $wpvp_ffmpeg_options['ar'] : 44100;
@@ -112,6 +113,7 @@ class WPVP_Helper{
         $wpvp_options['ffmpeg_path']=$ffmpeg_path;
 		$wpvp_options['mp4box_path']=$mp4box_path;
 		$wpvp_options['debug_mode']=$debug_mode;
+		$wpvp_options['encode_formats']=$encode_formats;
 	    return $wpvp_options;
 	}
 	/**
@@ -186,9 +188,9 @@ class WPVP_Helper{
 	}
 	/**
 	*check for max upload size based on php.ini settings
-	*@access public
+	*@access static
 	*/
-	public function wpvp_max_upload_size($type=true) {
+	static function wpvp_max_upload_size($type=true) {
 		$max_upload = (int)(ini_get('upload_max_filesize'));
 		$max_post = (int)(ini_get('post_max_size'));
 		$memory_limit = (int)(ini_get('memory_limit'));
@@ -199,9 +201,9 @@ class WPVP_Helper{
 	}
 	/**
 	*convert to bytes
-	*@access public
+	*@access static
 	*/
-	public function wpvp_return_bytes($val) {
+	static function wpvp_return_bytes($val) {
 		$val = trim($val);
 		switch (strtolower(substr($val, -1))){
 			case 'm': $val = (int)substr($val, 0, -1) * 1048576; break;
@@ -280,6 +282,52 @@ class WPVP_Helper{
 				}
 			}
 		}
+	}
+	/**
+	*Output categories allowed for front-end uploading
+	*@access static
+	**/
+	static function wpvp_upload_categories_dropdown($echo=true,$selected=0){
+		$html = '';
+		$wpvp_uploader_cats = get_option('wpvp_uploader_cats','');
+		if($wpvp_uploader_cats==''){
+			$uploader_cats = '';
+		} else {
+			$uploader_cats = implode(", ",$wpvp_uploader_cats);
+		}
+		$args = array('hide_empty'=>0,'include'=>$uploader_cats);
+		$categories = get_categories($args);
+		if(is_array($categories)&&!empty($categories)):
+			$html = '<select name="wpvp_category" class="wpvp_select">';
+			foreach($categories as $category){
+				$html .= '<option ';
+				$html .= ' value="'.$category->term_id.'" '.selected($selected,$category->term_id,false).'>';
+				$html .= $category->cat_name.'</option>';
+			}
+			$html.= '</select>';
+		endif;
+		if($echo)
+			echo $html;
+		else
+			return $html;
+	}
+	/**
+	*Load template file (include or require)
+	*@access static
+	**/
+	static function wpvp_load_template_file($file_name,$include=true,$data=array()){
+		$file_path = get_template_directory().'/'.$file_name.'.php';
+		$plugin_base = plugin_basename( __FILE__ );
+		$plugin_base = explode('/',$plugin_base);
+		if(!file_exists($file_path)){
+			$file_path = plugin_dir_path(dirname(__FILE__)).'templates/'.$file_name.'.php';
+		}
+		if(file_exists($file_path)):
+			if($include)
+				include($file_path);
+			else
+				require $file_path;
+		endif;
 	}
 }
 ?>

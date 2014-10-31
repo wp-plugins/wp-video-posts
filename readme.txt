@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.2
 Tested up to: 4.0
-Stable tag: 3.2
+Stable tag: 3.3
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image.
@@ -28,6 +28,17 @@ Youtube:
 
 Vimeo:
 [wpvp_embed type=vimeo video_code=23117398 width=500 height=281]
+
+You can also use our general shortcode to display a video player anywhere on your site (video need to be of mp4 format): 
+[wpvp_player src=http://example.com/path/to/video/file.mp4 splash=http://example.com/path/to/image/file.jpg width=500 height=281]
+
+You can also overwrite our template files for the front end uploader / editor if you need to add your styling. 
+If you're going to do so, please copy the files from wp-video-posts/templates/ into your own theme:
+
+- wpvp-frontend-uploader.php
+- wpvp-frontend-editor.php
+
+Remember to keep the fields and field names as is in order for the form processing to work properly.
 
 = Instructions =
 1. After install, go to the Dashboard.
@@ -122,6 +133,11 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.3 = 
+- Rewrote js processing of uploading / editing: added ajax forms processing including file uploading
+- Changed public functions to static: wpvp_return_bytes(), wpvp_max_upload_size()
+- Moved video upload / edit html into the template files. Users can now overwrite these template files with their own in their template.
+
 = 3.2 = 
 - Added an option in the settings to make a video description field for the front end uploader optional.
 - Updated video js files to version 4.10.1
