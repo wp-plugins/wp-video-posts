@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 3.3.1
+Version: 3.4
 Author: Alex Rayan, cmstactics
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -23,7 +23,7 @@ class WPVPMediaEncoder{
 	/**
 	* @var string WPVPMediaEncoder version
 	*/
-	public $version = '3.3.1';
+	public $version = '3.4';
 	public static function init(){
 		$class = __CLASS__;
 		new $class;
@@ -44,7 +44,7 @@ class WPVPMediaEncoder{
 		if(is_admin()){
 			add_action('admin_menu',array(&$this,'wpvp_options_page'));
 		}
-		add_action('init',array(&$this,'wpvp_register_videos_post_type'));
+		add_action('init',array(&$this,'wpvp_init_functions'));
 		add_action('wp_enqueue_scripts',array(&$this,'wpvp_enqueue_scripts'));
 		add_action('wp_footer', array(&$this,'wpvp_footer'), 100);
 		add_action('add_attachment', array(&$this,'wpvp_encode'),1);
@@ -87,6 +87,19 @@ class WPVPMediaEncoder{
 			add_action('wp_ajax_nopriv_wpvp_process_files',array(&$this,'wpvp_process_files'));
 			add_action('wp_ajax_nopriv_wpvp_process_form',array(&$this,'wpvp_process_form'));
 		}
+	}
+	/**
+	*Run init functions
+	*@access public
+	**/
+	public function wpvp_init_functions(){
+		//check for ffmpeg
+		if(get_option('wpvp_ffmpeg_exists')===FALSE){
+			$helper = new WPVP_Helper();
+			$helper->wpvp_command_exists_check('ffmpeg',true);
+		}
+		//register post types;
+		self::wpvp_register_videos_post_type();
 	}
 	/**
 	*Register menu options on admin_menu action hook

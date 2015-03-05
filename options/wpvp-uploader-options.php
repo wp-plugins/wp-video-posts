@@ -1,7 +1,7 @@
 <?php 
 $helper = new WPVP_Helper();
-$ffmpeg_c = $helper->wpvp_check_extension('ffmpeg');
-$ffmpeg_ext = (is_array($ffmpeg_c)&&!empty($ffmpeg_c)) ? true : false;
+$options = $helper->wpvp_get_full_options();
+$ffmpeg_ext = $options['ffmpeg_exists'];
 if($_POST['wpvp_uploader_hidden'] == 'Y') {
 	//Form data sent
 	$wpvp_allow_guest = $_POST['wpvp_allow_guest'];

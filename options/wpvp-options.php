@@ -1,7 +1,7 @@
 <?php 
 $helper = new WPVP_Helper();
-$ffmpeg_c = $helper->wpvp_check_extension('ffmpeg');
-$ffmpeg_ext = (is_array($ffmpeg_c)&&!empty($ffmpeg_c)) ? true : false;
+$options = $helper->wpvp_get_full_options();
+$ffmpeg_ext = $options['ffmpeg_exists'];
 $mp4box_c = $helper->wpvp_check_extension('MP4Box');
 $mp4box_ext = (is_array($mp4box_c)&&!empty($mp4box_c)) ? true : false;
 
@@ -129,13 +129,9 @@ if($_POST['wpvp_hidden'] == 'Y') {
 		<input type="button" value="Re-check FFMPEG" class="recheckExt" />
 	</div>
 	<?php 	
-	if(!$helper->wpvp_command_exists_check("ffmpeg")>0){
-		if($ffmpeg_ext){
-			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG test encoding failed. Possible reasons: restricted permissions on /test/ directory within the plugin, incorrectly configured ffmpeg, etc.</h3>';
-		} else {
-			echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG is not found on the server. The only extensions available for uploading: mp4.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
-		}
-	} ?>	
+	if(!$ffmpeg_ext){
+		echo '<h3 style="color: red;font-size: 12px;font-weight: normal;width: 300px;">FFMPEG test encoding failed. Possible reasons: restricted permissions on /test/ directory within the plugin, incorrectly configured ffmpeg, etc. FFMPEG is not found on the server. The only extensions available for uploading: mp4.<br />Please verify with your administrator or hosting provider to have this installed and configured. If ffmpeg is installed but you still see this message, specify the path to ffmpeg installation below:</h3><br />';
+	}?>	
 	<form name="wpvp_form" class="wpvp_form" method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
 		<input type="hidden" name="wpvp_hidden" value="Y">
 		<p>

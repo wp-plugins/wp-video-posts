@@ -33,11 +33,8 @@ class WPVP_Encode_Media{
 		//$ID is an attachment post passed from attachment processing
 		$helper = new WPVP_Helper();
         $options = $helper->wpvp_get_full_options();
-		if($helper->wpvp_command_exists_check($this->options['ffmpeg_path']."ffmpeg")>0){
-			$ffmpeg_exists = true;
-		} else {
-			$ffmpeg_exists = false;
-		}
+		$ffmpeg_exists = $options['ffmpeg_exists'];
+	
 		$width = $options['video_width'];
 		$height = $options['video_height'];
 		$ffmpeg_path = $options['ffmpeg_path'];
@@ -327,11 +324,8 @@ class WPVP_Encode_Media{
 		$helper = new WPVP_Helper();
 	    $width = $this->options['video_width'];
 		$height = $this->options['video_height'];
-		if($helper->wpvp_command_exists_check($this->options['ffmpeg_path']."ffmpeg")>0){
-            $ffmpeg_exists = true;
-        } else {
-            $ffmpeg_exists = false;
-        }
+		$options = $helper->wpvp_get_full_options();
+		$ffmpeg_exists = $options['ffmpeg_exists'];
 	    $attachmentID = $id;
         $content = $html;
 	    $attachmentObj = get_post($attachmentID);

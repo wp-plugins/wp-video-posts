@@ -96,6 +96,7 @@ class WPVP_Helper{
 		$wpvp_ffmpeg_vcodec = isset($wpvp_ffmpeg_options['vcodec']) ? $wpvp_ffmpeg_options['vcodec'] : 'libx264';
 		$wpvp_ffmpeg_vpre = isset($wpvp_ffmpeg_options['vpre']) ? $wpvp_ffmpeg_options['vpre'] : 0;
 		$wpvp_ffmpeg_other_flags = isset($wpvp_ffmpeg_options['other_flags']) ? $wpvp_ffmpeg_options['other_flags'] : 0;
+		$wpvp_ffmpeg_exists = get_option('wpvp_ffmpeg_exists',0);
 		
 		$wpvp_options['wpvp_ffmpeg_ar']=$wpvp_ffmpeg_ar;
 		$wpvp_options['wpvp_ffmpeg_b_a']=$wpvp_ffmpeg_b_a;
@@ -114,6 +115,7 @@ class WPVP_Helper{
 		$wpvp_options['mp4box_path']=$mp4box_path;
 		$wpvp_options['debug_mode']=$debug_mode;
 		$wpvp_options['encode_formats']=$encode_formats;
+		$wpvp_options['ffmpeg_exists'] = $wpvp_ffmpeg_exists;
 	    return $wpvp_options;
 	}
 	/**

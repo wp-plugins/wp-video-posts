@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.2
 Tested up to: 4.0
-Stable tag: 3.3
+Stable tag: 3.4
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image.
@@ -133,6 +133,10 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.4 = 
+- Updated the way FFMPEG detection is handled: encoding test is performed only instead of a combined detection.
+- Added FFMPEG check on init() hook if option is not set.
+
 = 3.3.1 = 
 - Added a fix for an E level notice. 
 
