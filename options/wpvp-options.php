@@ -69,7 +69,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_ffmpeg_path = get_option('wpvp_ffmpeg_path');
 	$wpvp_mp4box_path = get_option('wpvp_mp4box_path');
 	$wpvp_main_loop_alter = get_option('wpvp_main_loop_alter','yes') ? true : false;
-	$wpvp_debug_mode = get_option('wpvp_debug_mode') ? 1 : 0;
+	$wpvp_debug_mode = get_option('wpvp_debug_mode',0) ? 1 : 0;
 	$wpvp_player = get_option('wpvp_player','videojs') ? get_option('wpvp_player','videojs') : 'videojs';
 	$wpvp_autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
 	$wpvp_splash = get_option('wpvp_splash',true) ? get_option('wpvp_splash',true) : true;

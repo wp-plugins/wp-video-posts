@@ -39,7 +39,7 @@ class WPVP_Encode_Media{
 		$height = $options['video_height'];
 		$ffmpeg_path = $options['ffmpeg_path'];
 		$mp4box_path = $options['mp4box_path'];
-		$debug_mode = ($options['debug_mode']=='yes') ? true : false;
+		$debug_mode = $options['debug_mode'];
 		$allowed_ext = array('mp4','flv');
 
 		$encodeFormat = 'mp4'; // Other formats will be available soon...
@@ -223,7 +223,7 @@ class WPVP_Encode_Media{
 	protected function wpvp_convert_thumb($source,$target){
 		$helper = new WPVP_Helper();
         $options = $helper->wpvp_get_full_options();
-		$debug_mode = ($options['debug_mode']=='yes') ? true : false;
+		$debug_mode = $options['debug_mode'];
 		$width = $this->options['thumb_width'];
 		$height = $this->options['thumb_height'];
 		$capture_image = $this->options['capture_image'];
@@ -249,8 +249,9 @@ class WPVP_Encode_Media{
 		global $encodeFormat;
 		$helper = new WPVP_Helper();
         $options = $helper->wpvp_get_full_options();
-		$debug_mode = ($options['debug_mode']=='yes') ? true : false;
-		$helper->wpvp_dump($this->options);
+		$debug_mode = $options['debug_mode'];
+		if($debug_mode)
+			$helper->wpvp_dump($this->options);
 		$width = $this->options['video_width'];
 		$height = $this->options['video_height'];
 		$ffmpeg_path = $this->options['ffmpeg_path'];

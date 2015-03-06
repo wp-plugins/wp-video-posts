@@ -83,7 +83,7 @@ class WPVP_Helper{
 	    $capture_image = get_option('wpvp_capture_image','5');
         $ffmpeg_path = get_option('wpvp_ffmpeg_path','');
 		$mp4box_path = get_option('wpvp_mp4box_path','');
-		$debug_mode = get_option('wpvp_debug_mode');
+		$debug_mode = (bool)get_option('wpvp_debug_mode',0);
 		$allowed_extensions = get_option('wpvp_allowed_extensions',$default_ext);
 		$encode_formats = get_option('wpvp_encode_format',false) ? get_option('wpvp_encode_format') : array();
 		$wpvp_ffmpeg_options = array();
