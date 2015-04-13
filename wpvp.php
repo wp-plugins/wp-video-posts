@@ -3,7 +3,7 @@
 Plugin Name: WP Video Posts
 Plugin URI: http://cmstactics.com
 Description: WP Video Posts creates a custom post for uploaded videos. You can upload videos of different formats (FLV, F4V, MP4, AVI, MOV, 3GP and WMV) and the plugin will convert it to MP4 and play it using Flowplayer.  
-Version: 3.4.1
+Version: 3.5
 Author: Alex Rayan, cmstactics
 Author URI: http://cmstactics.com
 License: GPLv2 or later
@@ -23,7 +23,7 @@ class WPVPMediaEncoder{
 	/**
 	* @var string WPVPMediaEncoder version
 	*/
-	public $version = '3.4.1';
+	public $version = '3.5';
 	public static function init(){
 		$class = __CLASS__;
 		new $class;
@@ -415,13 +415,18 @@ class WPVPMediaEncoder{
 			'src'=>'',
 			'width'=>'640',
 			'height'=>'360',
-			'splash'=>''
+			'splash'=>'',
+			'autoplay'=>null,
+			'audio'=>null
 		),$atts));
 		$wpvp_player = get_option('wpvp_player','flowplayer') ? get_option('wpvp_player','flowplayer') : 'flowplayer';
 		if($wpvp_player=='flowplayer'){
 			$player_code = '<a href="'.$src.'" class="myPlayer" style="display:block;width:'.$width.'px;height:'.$height.'px;margin:10px auto"><img width="'.$width.'" height="'.$height.'" src="'.$splash.'" alt="" /></a>';
 		} else if($wpvp_player=='videojs'){
-			$autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
+			if(is_null($autoplay))
+				$autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
+			if(is_null($audio))
+				$audio = get_option('wpvp_audio',100) ? get_option('wpvp_audio',100) : 100;
 			$splash_check = get_option('wpvp_splash',false) ? get_option('wpvp_splash',false) : false;
 			if($autoplay)
 				$ap = 'autoplay ';
@@ -431,7 +436,7 @@ class WPVPMediaEncoder{
 				$sp = 'poster="'.$splash.'"';
 			else
 				$sp = '';
-			$player_code = '<video id="wpvp_videojs_'.time().'" '.$ap.'class="video-js vjs-default-skin" controls preload="none" width="'.$width.'" height="'.$height.'"'.$sp.' data-setup="{}">
+			$player_code = '<video id="wpvp_videojs_'.time().'" '.$ap.'class="video-js vjs-default-skin" controls preload="none" data-audio="'.$audio.'" width="'.$width.'" height="'.$height.'"'.$sp.' data-setup="{}">
 				<source src="'.$src.'" type="video/mp4" />
 			</video>';
 		}

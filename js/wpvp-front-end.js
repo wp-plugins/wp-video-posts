@@ -5,6 +5,18 @@ var files;
 jQuery(document).ready(function(){
 	jQuery('.wpvp-submit').on('click',wpvp_uploadFiles);
 	jQuery('input#async-upload').on('change', wpvp_prepareUpload);
+	jQuery('.video-js').each(function(){
+		var objId = jQuery(this).attr('id');
+		var vol = jQuery(this).data('audio');
+		if(objId !== 'undefined' && (vol < 100 && vol !== 'undefined')){
+			var player = videojs(objId);
+			player.ready(function(){
+				vol = parseFloat("0."+vol);
+				var playerObj = this;
+			  	playerObj.volume(vol);
+			});
+		}
+	});
 });
 // Grab the files and set them to our variable
 function wpvp_prepareUpload(event){

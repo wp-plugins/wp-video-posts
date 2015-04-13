@@ -3,8 +3,8 @@ Contributors: AlexRayan, cmstactics
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J535UTFPCXFQC
 Tags: video converter, video plugin, ffmpeg, video post
 Requires at least: 3.2.2
-Tested up to: 4.0
-Stable tag: 3.4.1
+Tested up to: 4.1.1
+Stable tag: 3.5
 
 Upload videos to create custom video posts. With FFMPEG installed, it encodes
 and creates splash image.
@@ -31,6 +31,14 @@ Vimeo:
 
 You can also use our general shortcode to display a video player anywhere on your site (video need to be of mp4 format): 
 [wpvp_player src=http://example.com/path/to/video/file.mp4 splash=http://example.com/path/to/image/file.jpg width=500 height=281]
+
+You can pass the following attributes to a shortcode (examples): 
+- width (640)
+- height (480)
+- autoplay (1|0)
+- volume (50)
+- src (http://example.com/video.mp4)
+- splash (http://example.com/video.jpg)
 
 You can also overwrite our template files for the front end uploader / editor if you need to add your styling. 
 If you're going to do so, please copy the files from wp-video-posts/templates/ into your own theme:
@@ -133,6 +141,10 @@ You can convert your video manually by using online resources or programs on you
 6. WP Video Posts Front End Uploader.
 
 == Changelog ==
+= 3.5 = 
+- Added audio levels option for Video JS player.
+- Added audio levels and autoplay option for a video shortcode.
+
 = 3.4.1 = 
 - Fixed a bug on a debug option.
 

@@ -18,6 +18,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_debug_mode = ($_POST['wpvp_debug_mode']=='yes') ? true : false;
 	$wpvp_player = $_POST['wpvp_player'];
 	$wpvp_autoplay = ($_POST['wpvp_autoplay']=='yes') ? true : false;
+	$wpvp_audio = $_POST['wpvp_audio'];
 	$wpvp_splash = ($_POST['wpvp_splash']=='yes') ? true : false;
 	$wpvp_clean_url = ($_POST['wpvp_clean_url']=='yes') ? true : false;
 	$wpvp_encode_format = empty($_POST['wpvp_encode_format']) ? array() : $_POST['wpvp_encode_format'];
@@ -54,6 +55,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	update_option('wpvp_debug_mode', $wpvp_debug_mode);
 	update_option('wpvp_player',$wpvp_player);
 	update_option('wpvp_autoplay',$wpvp_autoplay);
+	update_option('wpvp_audio',$wpvp_audio);
 	update_option('wpvp_splash',$wpvp_splash);
 	update_option('wpvp_clean_url',$wpvp_clean_url);
 	update_option('wpvp_encode_format',$wpvp_encode_format);
@@ -72,6 +74,7 @@ if($_POST['wpvp_hidden'] == 'Y') {
 	$wpvp_debug_mode = get_option('wpvp_debug_mode',0) ? 1 : 0;
 	$wpvp_player = get_option('wpvp_player','videojs') ? get_option('wpvp_player','videojs') : 'videojs';
 	$wpvp_autoplay = get_option('wpvp_autoplay',false) ? get_option('wpvp_autoplay',false) : false;
+	$wpvp_audio = get_option('wpvp_audio',100) ? get_option('wpvp_audio',100) : 100;
 	$wpvp_splash = get_option('wpvp_splash',true) ? get_option('wpvp_splash',true) : true;
 	$wpvp_clean_url = get_option('wpvp_clean_url',false) ? get_option('wpvp_clean_url',false) : false;
 	$wpvp_encode_format = get_option('wpvp_encode_format',false) ? get_option('wpvp_encode_format') : array();
@@ -170,6 +173,14 @@ if($_POST['wpvp_hidden'] == 'Y') {
 		<p>
 			<strong><?php _e('Video JS Controls');?></strong>
 			<p><input type="checkbox" name="wpvp_autoplay" value="yes" <?php checked($wpvp_autoplay,1);?> /> <?php _e('Autoplay video');?></p>
+			<p>
+			<?php $range = range(0,100,10);?>
+				<select name="wpvp_audio" id="wpvp_audio">
+				<?php foreach($range as $num){
+					echo '<option value="'.$num.'" '.selected($wpvp_audio,$num).'>'.$num.'</option>';
+				}?>
+  				</select> <?php _e('Audio Level');?>
+			</p>
 			<p><input type="checkbox" name="wpvp_splash" value="yes" <?php checked($wpvp_splash,1);?> /> <?php _e('Display splash image');?></p>
 		</p>
 		<p>
